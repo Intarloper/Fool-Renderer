@@ -54,6 +54,11 @@ inline float magnitude(Vec4 a){
 	return sqrt((a.x * a.x) + (a.y * a.y) + (a.z * a.z));
 }
 
+inline float distance(Vec4 a, Vec4 b){
+	return sqrt(((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y))
+	     + ((a.z - b.z) * (a.z - b.z)));
+}
+
 //normalizes a given vector
 inline Vec4 normalize(Vec4 a){
 	float mag = magnitude(a);
@@ -79,3 +84,9 @@ inline Vec4 cross(Vec4 a , Vec4 b ){
 	return cProd;
 	
 }
+
+inline float angle(Vec4 a, Vec4 b){
+	return acos( dot(a, b) / (magnitude(a) * magnitude(b)) ) * (180/PI);
+}
+
+
