@@ -70,6 +70,27 @@ inline float lerp(float init_value, float dest_value, float time){
 	return init_value + (dest_value - init_value) * time;
 }
 
+inline Vec3 lerp(Vec3 init_value, Vec3 dest_value, float time){
+	Vec3 lerpVec;
+
+	lerpVec.x = init_value.x + (dest_value.x - init_value.x) * time;
+	lerpVec.y = init_value.y + (dest_value.y - init_value.y) * time;
+	lerpVec.z = init_value.z + (dest_value.z - init_value.z) * time;
+
+	return lerpVec;
+}
+
+inline Vec4 lerp(Vec4 init_value, Vec4 dest_value, float time){
+	Vec4 lerpVec;
+
+	lerpVec.x = init_value.x + (dest_value.x - init_value.x) * time;
+	lerpVec.y = init_value.y + (dest_value.y - init_value.y) * time;
+	lerpVec.z = init_value.z + (dest_value.z - init_value.z) * time;
+	lerpVec.w = init_value.w + (dest_value.w - init_value.w) * time;
+
+	return lerpVec;
+}
+
 //Function that finds the magnitude of a given Vector4
 inline float magnitude(Vec3 a){
 	return sqrt( (a.x * a.x) + (a.y * a.y) + (a.z * a.z));
