@@ -2,10 +2,10 @@
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
+#include <ctime>
 #include <gl/gl.h>
 #include <stdlib.h>
 #include <iostream>
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -14,17 +14,27 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "uniform float myUniform; \n"
+    "out vec4 out_pos_to_color; \n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "out_pos_to_color = vec4(aPos.x, aPos.y, aPos.z, 1.0); \n"  
+    "   gl_Position = vec4(aPos.x + myUniform, aPos.y, aPos.z, 1.0);\n"
+    
     "}\0";
+    
+    
 const char *fragmentShaderSource = "#version 330 core\n"
+    "in vec4 out_pos_to_color;"
     "out vec4 FragColor;\n"
+    "uniform float myUniform;"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(.2f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(out_pos_to_color.x, out_pos_to_color.y, out_pos_to_color.z, 1.0f);\n"
     "}\n\0";
 
 int main()
@@ -104,8 +114,8 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
+         0.5f,  0.5f, 0.5f,  // top right
+         0.5f, -0.5f, 0.25f,  // bottom right
         -0.5f, -0.5f, 0.0f,  // bottom left
         -0.5f,  0.5f, 0.0f   // top left 
     };
@@ -121,7 +131,7 @@ int main()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -147,6 +157,18 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        
+        float timer;
+        float delay;
+        delay += .01;
+        timer += .01;
+
+        if(timer >= 3.5){
+            timer = 0;
+            delay = -2;
+        }
+
+
         // input
         // -----
         processInput(window);
@@ -158,11 +180,15 @@ int main()
 
         // draw our first triangle
         glUseProgram(shaderProgram);
+        GLint myUniformLocation = glGetUniformLocation(shaderProgram, "myUniform");
+        glUniform1f(myUniformLocation, delay);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
- 
+        vertices[3] += .001;
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
