@@ -15,28 +15,30 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 
-
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "uniform float myUniform; \n"
-    "out vec4 out_pos_to_color; \n"
-    "void main()\n"
-    "{\n"
-    "out_pos_to_color = vec4(aPos.x, aPos.y, aPos.z, 1.0); \n"  
-    "   gl_Position = vec4(aPos.x + myUniform, aPos.y, aPos.z, 1.0);\n"
+//All Shader Code; Written in Raw string literal
+//
+//GLSL CODE
+const char *vertexShaderSource = R"(#version 330 core
+    layout (location = 0) in vec3 aPos;
+    uniform float myUniform;
+    out vec4 out_pos_to_color;
+    void main()
+    {
+    out_pos_to_color = vec4(aPos.x, aPos.y, aPos.z, 1.0);  
+        gl_Position = vec4(aPos.x + myUniform, aPos.y, aPos.z, 1.0);
     
-    "}\0";
+    };)";
     
     
-const char *fragmentShaderSource = "#version 330 core\n"
-    "in vec4 out_pos_to_color;"
-    "out vec4 FragColor;\n"
-    "uniform float myUniform;"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(out_pos_to_color.x, out_pos_to_color.y, out_pos_to_color.z, 1.0f);\n"
-    "}\n\0";
-
+const char *fragmentShaderSource = R"(#version 330 core
+    in vec4 out_pos_to_color;
+    out vec4 FragColor;
+    uniform float myUniform;
+    void main()
+    {
+       FragColor = vec4(out_pos_to_color.x, out_pos_to_color.y, out_pos_to_color.z, 1.0f);
+    };)";
+//GLSL CODE
 int main()
 {
     // glfw: initialize and configure
@@ -111,7 +113,6 @@ int main()
     glDeleteShader(fragmentShader);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
     float vertices[] = {
          0.5f,  0.5f, 0.5f,  // top right
          0.5f, -0.5f, 0.25f,  // bottom right
