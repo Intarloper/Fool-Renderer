@@ -2,10 +2,10 @@
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
-#include <ctime>
 #include <gl/gl.h>
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -21,11 +21,13 @@ const unsigned int SCR_HEIGHT = 600;
 const char *vertexShaderSource = R"(#version 330 core
     layout (location = 0) in vec3 aPos;
     uniform float myUniform;
+    uniform float myUniformY;
+    uniform float myUniformZ;
     out vec4 out_pos_to_color;
     void main()
     {
-    out_pos_to_color = vec4(aPos.x, aPos.y, aPos.z, 1.0);  
-        gl_Position = vec4(aPos.x + myUniform, aPos.y, aPos.z, 1.0);
+        out_pos_to_color = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);  
+        gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
     
     };)";
     
@@ -36,7 +38,7 @@ const char *fragmentShaderSource = R"(#version 330 core
     uniform float myUniform;
     void main()
     {
-       FragColor = vec4(out_pos_to_color.x, out_pos_to_color.y, out_pos_to_color.z, 1.0f);
+       FragColor = vec4(out_pos_to_color.x , out_pos_to_color.y , out_pos_to_color.z , 1.0f);
     };)";
 //GLSL CODE
 int main()
@@ -72,6 +74,7 @@ int main()
 
 
     // build and compile shader program
+
     // vertex shader
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -86,6 +89,8 @@ int main()
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
+
+
     // fragment shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
@@ -98,6 +103,8 @@ int main()
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
+
+
     // link shaders
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
@@ -109,21 +116,31 @@ int main()
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float vertices[] = {
-         0.5f,  0.5f, 0.5f,  // top right
-         0.5f, -0.5f, 0.25f,  // bottom right
+         0.25f,  0.5f, 0.0f,  // top right
+         0.25f, -0.5f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
+        -0.5f,  0.5f, 0.0f,   // top left 
     };
+
+
+
     unsigned int indices[] = {  // note that we start from 0!
         0, 1, 3,  // first Triangle
         1, 2, 3   // second Triangle
     };
+    
+
+
+
     unsigned int VBO, VAO, EBO;
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -134,8 +151,9 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+    
+    //tells openGL how to interpret data in memory
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -153,16 +171,18 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         
-        float timer;
-        float delay;
-        delay += .01;
-        timer += .01;
-
-        if(timer >= 3.5){
-            timer = 0;
-            delay = -2;
+        float xMove;
+        float yMove;
+        float zMove;
+        
+        xMove += .01;
+        yMove += .01;
+        zMove += .01;
+        if(xMove  > 10000 || yMove > 10000 || zMove > 10000){
+            xMove = 0;
+            yMove = 0;
+            zMove = 0;
         }
-
 
         // input
         processInput(window);
@@ -178,20 +198,21 @@ int main()
 
         //This section allows variables to be passed into our shader, currently used to move square and change color over time
         GLint myUniformLocation = glGetUniformLocation(shaderProgram, "myUniform");
-        glUniform1f(myUniformLocation, delay);
+        GLint myUniformLocationY = glGetUniformLocation(shaderProgram, "myUniformY");
+        GLint myUniformLocationZ = glGetUniformLocation(shaderProgram, "myUniformZ");
+        glUniform1f(myUniformLocation, sin(xMove));
+        glUniform1f(myUniformLocationY, cos(yMove));
+        glUniform1f(myUniformLocationZ, sin(zMove));
 
-        //We have this buffer data here as i was trying to pass in new verticies every frame call; not sure if it works 
-        // (NEEDS FIXING)
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+        
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
+        //
+        //DRAWS TO SCREEN
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+       
         // glBindVertexArray(0); // no need to unbind it every time 
-        
-        //trying to update vertex position every frame; dont think this works
-        //(NEEDS FIXING)
-        vertices[3] += .001;
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
