@@ -27,7 +27,7 @@ const char *vertexShaderSource = R"(#version 330 core
     void main()
     {
         out_pos_to_color = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);  
-        gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
+        gl_Position = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);
     
     };)";
     
@@ -38,7 +38,7 @@ const char *fragmentShaderSource = R"(#version 330 core
     uniform float myUniform;
     void main()
     {
-       FragColor = vec4(out_pos_to_color.x , out_pos_to_color.y , out_pos_to_color.z , 1.0f);
+       FragColor = vec4(out_pos_to_color.x, out_pos_to_color.y, out_pos_to_color.z, 1.0f);
     };)";
 //GLSL CODE
 int main()
@@ -123,10 +123,10 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float vertices[] = {
-         0.25f,  0.5f, 0.0f,  // top right
-         0.25f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f,   // top left 
+         0.05f,  0.1f, 0.0f,  // top right // 0.25f, 0.5f, 0.0f
+         0.05f, -0.05f, 0.0f,  // bottom right // 0.25f, -0.5f, 0.0f
+        -0.05f, -0.05f, 0.0f,  // bottom left // -0.5f, -0.5f, 0.0f
+        -0.05f,  0.1f, 0.0f,   // top left // -0.5, 0.5f, 0.0f
     };
 
 
@@ -136,8 +136,6 @@ int main()
         1, 2, 3   // second Triangle
     };
     
-
-
 
     unsigned int VBO, VAO, EBO;
 
@@ -200,11 +198,10 @@ int main()
         GLint myUniformLocation = glGetUniformLocation(shaderProgram, "myUniform");
         GLint myUniformLocationY = glGetUniformLocation(shaderProgram, "myUniformY");
         GLint myUniformLocationZ = glGetUniformLocation(shaderProgram, "myUniformZ");
-        glUniform1f(myUniformLocation, sin(xMove));
-        glUniform1f(myUniformLocationY, cos(yMove));
-        glUniform1f(myUniformLocationZ, sin(zMove));
+        glUniform1f(myUniformLocation, cos(xMove) * 0.6);
+        glUniform1f(myUniformLocationY, sin(yMove) * 0.6);
+        glUniform1f(myUniformLocationZ, cos(zMove));
 
-        
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
