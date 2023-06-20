@@ -20,25 +20,30 @@ const unsigned int SCR_HEIGHT = 600;
 //GLSL CODE
 const char *vertexShaderSource = R"(#version 330 core
     layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
     uniform float myUniform;
     uniform float myUniformY;
     uniform float myUniformZ;
     out vec4 out_pos_to_color;
+    out vec4 color;
     void main()
     {
+        color = vec4(aColor, 1.0);
         out_pos_to_color = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);  
         gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
-    
+        
     };)";
     
     
 const char *fragmentShaderSource = R"(#version 330 core
     in vec4 out_pos_to_color;
+    in vec4 color;
     out vec4 FragColor;
     uniform float myUniform;
     void main()
     {
-       FragColor = vec4(out_pos_to_color.x , out_pos_to_color.y , out_pos_to_color.z , 1.0f);
+       //FragColor = vec4(out_pos_to_color.x , out_pos_to_color.y , out_pos_to_color.z , 1.0f);
+        FragColor = color;
     };)";
 //GLSL CODE
 int main()
@@ -123,10 +128,11 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float vertices[] = {
-         0.5f,  0.1f, 0.0f,  // top right
-         0.5f, -0.1f, 0.0f,  // bottom right
-        -0.1f, -0.1f, 0.0f,  // bottom left
-        -0.1f,  0.1f, 0.0f,   // top left 
+        //Position          //Color
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top right
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f  // top left 
     };
 
 
@@ -154,8 +160,16 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
     
     //tells openGL how to interpret data in memory
+
+    //Position Attrib
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    
+    //Color Attrib
+    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 3 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
@@ -166,6 +180,8 @@ int main()
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0); 
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -200,8 +216,8 @@ int main()
         GLint myUniformLocation = glGetUniformLocation(shaderProgram, "myUniform");
         GLint myUniformLocationY = glGetUniformLocation(shaderProgram, "myUniformY");
         GLint myUniformLocationZ = glGetUniformLocation(shaderProgram, "myUniformZ");
-        glUniform1f(myUniformLocation, sin(xMove));
-        glUniform1f(myUniformLocationY, cos(yMove));
+        glUniform1f(myUniformLocation, .3 * sin(xMove));
+        glUniform1f(myUniformLocationY, .3 *cos(yMove));
         glUniform1f(myUniformLocationZ, sin(zMove));
 
         
