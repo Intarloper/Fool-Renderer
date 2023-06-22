@@ -50,7 +50,7 @@ int main()
 
 
     // build and compile our shader program
-    Shader ourShader("vertex.shader", "fragment.shader");
+    Shader ourShader("Resources/Shaders/vertex.shader", "Resources/Shaders/fragment.shader");
 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -92,7 +92,7 @@ int main()
     glEnableVertexAttribArray(0);
     
     //Color Attrib
-    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 3 * sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
 
@@ -137,6 +137,15 @@ int main()
         //
         // Calls the shader program we set up outside of render loop
         ourShader.use();
+        
+
+        GLint myUniformLocationX = glGetUniformLocation(ourShader.ID, "myUniformX");
+        GLint myUniformLocationY = glGetUniformLocation(ourShader.ID, "myUniformY");
+        GLint myUniformLocationZ = glGetUniformLocation(ourShader.ID, "myUniformZ");
+
+        glUniform1f(myUniformLocationX, .3 * sin(xMove));
+        glUniform1f(myUniformLocationY, .3 *cos(yMove));
+        glUniform1f(myUniformLocationZ, sin(zMove)); 
 
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
