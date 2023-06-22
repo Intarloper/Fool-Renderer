@@ -30,8 +30,8 @@ const char *vertexShaderSource = R"(#version 330 core
     {
         color = vec4(aColor, 1.0);
         out_pos_to_color = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);  
-        gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
-        
+        //gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
+        gl_Position = vec4(aPos, 1.0);
     };)";
     
     
@@ -129,10 +129,11 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float vertices[] = {
         //Position          //Color
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top right
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f  // top left 
+         0.5f,  0.5f, 1.0f,  0.0f, 0.0f, 1.0f,  // top right
+         0.5f, -0.5f, 1.0f,  0.0f, 1.0f, 0.0f,// bottom right
+        -0.5f, -0.5f, 1.0f,  1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 1.0f,  0.0f, 1.0f, 0.0f  // top left 
+        
     };
 
 
@@ -166,7 +167,7 @@ int main()
     glEnableVertexAttribArray(0);
     
     //Color Attrib
-    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 3 * sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
     
