@@ -1,4 +1,5 @@
 #include "Libraries/PL/VecLibrary.h"
+#include "Libraries/PL/ClassShader.h"
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
@@ -15,37 +16,6 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 
-//All Shader Code; Written in Raw string literal
-//
-//GLSL CODE
-const char *vertexShaderSource = R"(#version 330 core
-    layout (location = 0) in vec3 aPos;
-    layout (location = 1) in vec3 aColor;
-    uniform float myUniform;
-    uniform float myUniformY;
-    uniform float myUniformZ;
-    out vec4 out_pos_to_color;
-    out vec4 color;
-    void main()
-    {
-        color = vec4(aColor, 1.0);
-        out_pos_to_color = vec4(aPos.x + myUniform, aPos.y + myUniformY, aPos.z + myUniformZ, 1.0);  
-        //gl_Position = vec4(aPos.x + myUniform , aPos.y + myUniformY, aPos.z + myUniformZ , 1.0);
-        gl_Position = vec4(aPos, 1.0);
-    };)";
-    
-    
-const char *fragmentShaderSource = R"(#version 330 core
-    in vec4 out_pos_to_color;
-    in vec4 color;
-    out vec4 FragColor;
-    uniform float myUniform;
-    void main()
-    {
-       //FragColor = vec4(out_pos_to_color.x , out_pos_to_color.y , out_pos_to_color.z , 1.0f);
-        FragColor = color;
-    };)";
-//GLSL CODE
 int main()
 {
     // glfw: initialize and configure
@@ -78,64 +48,19 @@ int main()
     }
 
 
-    // build and compile shader program
 
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    // (copied from tutorial)
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    // (copied from tutorial)
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // build and compile our shader program
+    Shader ourShader("Resources/Shaders/vertex.shader", "Resources/Shaders/fragment.shader");
 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float vertices[] = {
         //Position          //Color
-         0.5f,  0.5f, 1.0f,  0.0f, 0.0f, 1.0f,  // top right
-         0.5f, -0.5f, 1.0f,  0.0f, 1.0f, 0.0f,// bottom right
-        -0.5f, -0.5f, 1.0f,  1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 1.0f,  0.0f, 1.0f, 0.0f  // top left 
-        
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top right
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f  // top left 
     };
-
 
 
     unsigned int indices[] = {  // note that we start from 0!
@@ -143,8 +68,6 @@ int main()
         1, 2, 3   // second Triangle
     };
     
-
-
 
     unsigned int VBO, VAO, EBO;
 
@@ -154,6 +77,7 @@ int main()
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
@@ -161,6 +85,7 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(indices), indices, GL_DYNAMIC_DRAW);
     
     //tells openGL how to interpret data in memory
+
 
     //Position Attrib
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -170,7 +95,7 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    
+
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
@@ -211,17 +136,17 @@ int main()
         // draw our first triangle
         //
         // Calls the shader program we set up outside of render loop
-        glUseProgram(shaderProgram);
-
-        //This section allows variables to be passed into our shader, currently used to move square and change color over time
-        GLint myUniformLocation = glGetUniformLocation(shaderProgram, "myUniform");
-        GLint myUniformLocationY = glGetUniformLocation(shaderProgram, "myUniformY");
-        GLint myUniformLocationZ = glGetUniformLocation(shaderProgram, "myUniformZ");
-        glUniform1f(myUniformLocation, .3 * sin(xMove));
-        glUniform1f(myUniformLocationY, .3 *cos(yMove));
-        glUniform1f(myUniformLocationZ, sin(zMove));
-
+        ourShader.use();
         
+
+        GLint myUniformLocationX = glGetUniformLocation(ourShader.ID, "myUniformX");
+        GLint myUniformLocationY = glGetUniformLocation(ourShader.ID, "myUniformY");
+        GLint myUniformLocationZ = glGetUniformLocation(ourShader.ID, "myUniformZ");
+
+        glUniform1f(myUniformLocationX, .3 * sin(xMove));
+        glUniform1f(myUniformLocationY, .3 *cos(yMove));
+        glUniform1f(myUniformLocationZ, sin(zMove)); 
+
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -236,17 +161,19 @@ int main()
         glfwPollEvents();
     }
 
+
     // optional: de-allocate all resources once they've outlived their purpose:
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shaderProgram);
+   
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     //ALWAYS CALL AT END
     glfwTerminate();
     return 0;
 }
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // Checks if escape is pressed and sets window close flag to true if it is
@@ -263,6 +190,5 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 
 
