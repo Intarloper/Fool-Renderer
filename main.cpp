@@ -1,8 +1,13 @@
+#include "Libraries/GLM/ext/matrix_transform.hpp"
+#include "Libraries/GLM/ext/vector_float3.hpp"
 #include "Libraries/PL/VecLibrary.h"
 #include "Libraries/PL/ClassShader.h"
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
+#include "Libraries/GLM/glm.hpp"
+#include "Libraries/GLM/gtc/matrix_transform.hpp"
+#include "Libraries/GLM/gtc/type_ptr.hpp"
 #include <gl/gl.h>
 #include <stdlib.h>
 #include <iostream>
@@ -54,35 +59,75 @@ int main()
 
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
-    float vertices[] = {
+    /*float vertices[] = {
         //Position          //Color
          0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top right
          0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
         -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom left
         -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f  // top left 
-    };
+    }; */
 
+   float vertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
 
-    unsigned int indices[] = {  // note that we start from 0!
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
+}; 
+
+   /* unsigned int indices[] = {  // note that we start from 0!
         0, 1, 3,  // first Triangle
         1, 2, 3   // second Triangle
-    };
+    }; */
     
 
     unsigned int VBO, VAO, EBO;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(indices), indices, GL_DYNAMIC_DRAW);
     
     //tells openGL how to interpret data in memory
 
@@ -108,6 +153,8 @@ int main()
     glBindVertexArray(0); 
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
+    glEnable(GL_DEPTH_TEST);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -131,14 +178,16 @@ int main()
 
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw our first triangle
         //
         // Calls the shader program we set up outside of render loop
         ourShader.use();
         
-
+        
+        //Make out object move in a circle
+        /*
         GLint myUniformLocationX = glGetUniformLocation(ourShader.ID, "myUniformX");
         GLint myUniformLocationY = glGetUniformLocation(ourShader.ID, "myUniformY");
         GLint myUniformLocationZ = glGetUniformLocation(ourShader.ID, "myUniformZ");
@@ -146,13 +195,34 @@ int main()
         glUniform1f(myUniformLocationX, .3 * sin(xMove));
         glUniform1f(myUniformLocationY, .3 *cos(yMove));
         glUniform1f(myUniformLocationZ, sin(zMove)); 
+        */
+        
+        //3D
 
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
+
+        glm::mat4 view = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+        int projLoc = glGetUniformLocation(ourShader.ID, "proj");
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); 
+        
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         //
         //DRAWS TO SCREEN
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0 , 36);
        
         // glBindVertexArray(0); // no need to unbind it every time 
 
