@@ -8,6 +8,42 @@
 #include <sstream>
 #include <iostream>
 
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+static ShaderProgramSource Parse(const std::string& filepath){
+        std::ifstream shaderFile;
+        std::string line;
+        
+
+        enum class ShaderType
+        {
+            NONE = -1 , VERTEX = 0, FRAGMENT = 1
+        };
+
+
+        std::ifstream stream(filepath);
+        ShaderType type = ShaderType::NONE;
+        std::stringstream ss[2];
+
+        while(std::getline(stream, line)){
+            if(line.find("#shader") != std::string::npos){
+                if(line.find("vertex") != std::string::npos){
+                    type = ShaderType::VERTEX;
+                }
+                else if(line.find("fragment") != std::string::npos){
+                    type = ShaderType::FRAGMENT;
+                }
+            }
+            else{
+                ss[(int)type] << line << '\n';
+            }
+        }
+        
+        return {ss[0].str(), ss[1].str()};
+};
 
 class Shader
 {
@@ -15,19 +51,26 @@ public:
     unsigned int ID;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath)
+    Shader(const std::string& shaderSource)
     {
-        // 1. retrieve the vertex/fragment source code from filePath
+       /* // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;
         std::ifstream fShaderFile;
+
+
+
         // ensure ifstream objects can throw exceptions:
         vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
         fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        */
+
+        std::string vertexCode;
+        std::string fragmentCode;
         try 
         {
-            // open files
+           /* // open files
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
             std::stringstream vShaderStream, fShaderStream;
@@ -40,13 +83,19 @@ public:
             // convert stream into string
             vertexCode   = vShaderStream.str();
             fragmentCode = fShaderStream.str();
+            */
+            ShaderProgramSource source = Parse(shaderSource);
+
+            vertexCode = source.VertexSource;
+            fragmentCode = source.FragmentSource;
+            
         }
         catch (std::ifstream::failure& e)
         {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
         }
         const char* vShaderCode = vertexCode.c_str();
-        const char * fShaderCode = fragmentCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
         // 2. compile shaders
         unsigned int vertex, fragment;
         // vertex shader

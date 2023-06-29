@@ -55,8 +55,10 @@ int main()
 
 
     // build and compile our shader program
-    Shader ourShader("Resources/Shaders/vertex.shader", "Resources/Shaders/fragment.shader");
+    Shader ourShader("Resources/Shaders/Shader.shader");
 
+    ShaderProgramSource source = Parse("Resources/Shaders/Shader.shader");
+    std::cout << source.VertexSource << std::endl;
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     /*float vertices[] = {
