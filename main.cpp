@@ -113,13 +113,19 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
 }; 
 
+    glm::vec3 postions[]{
+        glm::vec3(1, 0.0, -1),
+        glm::vec3(-1, 0.25, 0.5),
+        glm::vec3(0.0, 0.0, 0.0)
+    };
+
    /* unsigned int indices[] = {  // note that we start from 0!
         0, 1, 3,  // first Triangle
         1, 2, 3   // second Triangle
     }; */
     
 
-    unsigned int VBO, VAO, EBO;
+    unsigned int VBO, VAO;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -220,13 +226,17 @@ int main()
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); 
         
 
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-        //
+        glBindVertexArray(VAO); 
         //DRAWS TO SCREEN
-        glDrawArrays(GL_TRIANGLES, 0 , 36);
-       
-        // glBindVertexArray(0); // no need to unbind it every time 
+        //
+        for(int i = 0; i < 3; i++){
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, postions[i] * glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f)); 
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
+     
+            glDrawArrays(GL_TRIANGLES, 0 , 36);
+        };
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -237,7 +247,6 @@ int main()
     // optional: de-allocate all resources once they've outlived their purpose:
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
    
 
     // glfw: terminate, clearing all previously allocated GLFW resources.

@@ -34,5 +34,6 @@ void main()
 {
 	FragColor = vec4(out_pos_to_color.xyw, -1 * out_pos_to_color.z );
 	//FragColor = color;
+	
 };
 
