@@ -7,10 +7,10 @@ uniform mat4 model;
 uniform mat4 proj;
 uniform mat4 view;
 
-out vec4 glpos;
+
 void main(){
 	gl_Position = proj * view * model * vec4(pos.xy, pos.z + 0.1f, 1.0f);
-	glpos = vec4(pos.xyz , 1.0f);
+	
 };
 
 
@@ -25,5 +25,5 @@ out vec4 FragColor;
 in vec4 glpos;
 void main(){
 
-	FragColor = glpos;
+	FragColor = vec4(0.8f, 0.8f, 0.8f, 1.0f);
 };

@@ -136,8 +136,8 @@ int main()
     };
 
     glm::vec3 postions[]{
-        glm::vec3(1, 0.0, -10),
-        glm::vec3(-1, 2.25, 0.5),
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(1.0, 0.0, 0.0),
         glm::vec3(-1.0, 0.0, 0.0)
     };
 
@@ -221,7 +221,7 @@ int main()
     
         
         //3D
-
+        //CUBE
         glm::mat4 model = glm::mat4(1.0f);
         //model = glm::translate(model, glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
@@ -243,21 +243,18 @@ int main()
         
 
         glBindVertexArray(VAO); 
-        glDrawArrays(GL_TRIANGLES, 0 , 36);
-        //DRAWS TO SCREEN
-        /*
         //
         for(int i = 0; i < 3; i++){
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, postions[i] * glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
+            //model = glm::translate(model, postions[i] * glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , postions[i]);
             model = glm::scale(model, glm::vec3(.75f, .75f, .75f));
+            model = glm::translate(model, postions[i]);
 
-            view = camera.GetViewMatrix();
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
      
             glDrawArrays(GL_TRIANGLES, 0 , 36);
-        }; */ 
+        }; 
         //PLANE
         planeShader.use();
 
