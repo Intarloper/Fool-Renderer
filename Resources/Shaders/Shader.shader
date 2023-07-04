@@ -17,7 +17,7 @@ void main()
 	
 	color = vec4(aColor, 1.0);
 	out_pos_to_color =  proj * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);  
-	gl_Position = proj * view * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	gl_Position = proj * view * model * vec4(aPos.xyz, 1.0);
 };
 
 
@@ -34,7 +34,9 @@ void main()
 {
 	//Messing around with shader stuff, makes circles across the screen that are only rendered 
 	//inside the cubes
-	vec2 screenSize = vec2(800,600);
+
+
+	vec2 screenSize = vec2(1280,720);
 	vec4 fc = gl_FragCoord;
 	fc = vec4(fc.xy / screenSize.xy * 2.0 - 1, 0 , 1);
 

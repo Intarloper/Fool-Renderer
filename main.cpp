@@ -1,7 +1,9 @@
+#include "Libraries/GLM/ext/matrix_clip_space.hpp"
 #include "Libraries/GLM/ext/matrix_transform.hpp"
 #include "Libraries/GLM/ext/vector_float3.hpp"
 #include "Libraries/PL/VecLibrary.h"
 #include "Libraries/PL/ClassShader.h"
+#include "Libraries/PL/ClassCamera.h"
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
@@ -14,12 +16,23 @@
 #include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void processInput(GLFWwindow *window);
 
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+
+bool firstMouse = true;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -44,6 +57,10 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -56,18 +73,13 @@ int main()
 
     // build and compile our shader program
     Shader ourShader("Resources/Shaders/Shader.shader");
+    Shader planeShader("Resources/Shaders/floor.shader");
 
     ShaderProgramSource source = Parse("Resources/Shaders/Shader.shader");
     std::cout << source.VertexSource << std::endl;
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    /*float vertices[] = {
-        //Position          //Color
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // top right
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f  // top left 
-    }; */
+    
+    ShaderProgramSource planeSource = Parse("Resources/Shaders/floor.shader");
+    std::cout << planeSource.VertexSource << std::endl;
 
    float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
@@ -113,10 +125,20 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
 }; 
 
+    float planeVertices[]{
+        0.5f, 0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+
+        0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f
+    };
+
     glm::vec3 postions[]{
-        glm::vec3(1, 0.0, -1),
-        glm::vec3(-1, 0.25, 0.5),
-        glm::vec3(0.0, 0.0, 0.0)
+        glm::vec3(1, 0.0, -10),
+        glm::vec3(-1, 2.25, 0.5),
+        glm::vec3(-1.0, 0.0, 0.0)
     };
 
    /* unsigned int indices[] = {  // note that we start from 0!
@@ -124,21 +146,16 @@ int main()
         1, 2, 3   // second Triangle
     }; */
     
-
+//CUBE
     unsigned int VBO, VAO;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
-
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-    
-    //tells openGL how to interpret data in memory
-
 
     //Position Attrib
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -148,18 +165,24 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
-
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0); 
+//PLANE
+    unsigned int pVAO, pVBO;
 
+    glGenVertexArrays(1, &pVAO);
+    glGenBuffers(1, &pVBO);
+
+    glBindVertexArray(pVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, pVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     glEnable(GL_DEPTH_TEST);
@@ -167,7 +190,11 @@ int main()
     // render loop
     while (!glfwWindowShouldClose(window))
     {
-        
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;  
+
+
         float xMove;
         float yMove;
         float zMove;
@@ -185,58 +212,82 @@ int main()
         processInput(window);
 
         // render
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.59f, 0.8f, 0.9f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // draw our first triangle
-        //
         // Calls the shader program we set up outside of render loop
+        
         ourShader.use();
-        
-        
-        //Make out object move in a circle
-        /*
-        GLint myUniformLocationX = glGetUniformLocation(ourShader.ID, "myUniformX");
-        GLint myUniformLocationY = glGetUniformLocation(ourShader.ID, "myUniformY");
-        GLint myUniformLocationZ = glGetUniformLocation(ourShader.ID, "myUniformZ");
-
-        glUniform1f(myUniformLocationX, .3 * sin(xMove));
-        glUniform1f(myUniformLocationY, .3 *cos(yMove));
-        glUniform1f(myUniformLocationZ, sin(zMove)); 
-        */
+    
         
         //3D
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
+        //model = glm::translate(model, glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
 
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        glm::mat4 projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        view = camera.GetViewMatrix();
 
         int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
         int projLoc = glGetUniformLocation(ourShader.ID, "proj");
-
+        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+ 
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); 
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+ 
         
 
         glBindVertexArray(VAO); 
+        glDrawArrays(GL_TRIANGLES, 0 , 36);
         //DRAWS TO SCREEN
+        /*
         //
         for(int i = 0; i < 3; i++){
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, postions[i] * glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f)); 
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
+            model = glm::scale(model, glm::vec3(.75f, .75f, .75f));
+
+            view = camera.GetViewMatrix();
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
      
             glDrawArrays(GL_TRIANGLES, 0 , 36);
-        };
+        }; */ 
+        //PLANE
+        planeShader.use();
+
+        glm::mat4 planeModel = glm::mat4(1.0f);
+        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        planeModel = glm::scale(planeModel, glm::vec3(10, 10, 10));
+
+        glm::mat4 planeProj = glm::mat4(1.0f);
+        planeProj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 planeView = glm::mat4(1.0f);
+        planeView = camera.GetViewMatrix();
+
+
+        int planeMLoc = glGetUniformLocation(planeShader.ID, "model");
+        int planePLoc = glGetUniformLocation(planeShader.ID, "proj");
+        int planeVLoc = glGetUniformLocation(planeShader.ID, "view");
+
+        glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
+        glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
+        glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
+ 
+
+
+
+
+
+
+        glBindVertexArray(pVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -262,9 +313,19 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
@@ -273,3 +334,32 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
