@@ -44,6 +44,9 @@ float *CalculateNormals(float vertices[], int arraySize){
     int arrayLength = arraySize;
     std::cout << arrayLength << std::endl;
     float *result = new float[arrayLength];
+
+    glm::vec3 crossResult = glm::vec3(0.0f, 0.0f, 0.0f);
+
     for(int i = 0; i < arrayLength; i += 9){
         
         glm::vec3 vecA = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
@@ -55,20 +58,31 @@ float *CalculateNormals(float vertices[], int arraySize){
         glm::vec3 edgeAB = vecB - vecA;
         glm::vec3 edgeAC = vecC - vecA;
 
-        glm::vec3 crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-        std::cout << glm::to_string(crossResult) << std::endl;
-        for(int j = 0; j < ((arrayLength * 3)/ 9); j += 3){
+        crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+    
+        for(int j = 0; j < 9; j += 9){
             result[j] = crossResult.x;
             result[j + 1] = crossResult.y;
             result[j + 2] = crossResult.z;
+
+            result[j + 3] = crossResult.x;
+            result[j + 4] = crossResult.y;
+            result[j + 5] = crossResult.z;
+
+            result[j + 6] = crossResult.x;
+            result[j + 7] = crossResult.y;
+            result[j + 8] = crossResult.z;
 
             //std::cout << crossResult.x << std::endl;
             //std::cout<< crossResult.y << std::endl;
             //std::cout << crossResult.z <<std::endl;
 
             std::cout << result[j] << " " << result[j + 1] << " " << result[j + 2] << std::endl;
-            
+            std::cout << result[j + 3] << " " << result[j + 4] << " " << result[j + 5] << std::endl;
+            std::cout << result[j + 6] << " " << result[j + 7] << " " << result[j + 8] << std::endl;
         };
+            
+        
     };
     
     return result;
@@ -234,21 +248,17 @@ float verticesP[] = {
     unsigned int VBO, VAO;
 
     glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    
     glBindVertexArray(VAO);
 
+    glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-
     //Position Attrib
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    
     //Color Attrib
     glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
-
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
     glBindVertexArray(0); 
@@ -258,50 +268,36 @@ float verticesP[] = {
     unsigned int cVBO, cVAO;
 
     glGenVertexArrays(1, &cVAO);
-    glGenBuffers(1, &cVBO);
-
     glBindVertexArray(cVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesP), verticesP, GL_DYNAMIC_DRAW);
-    //std::cout << sizeof(verticesP) << std::endl;
     
-    //normals
-    int arrayLength = *(&verticesP + 1) - verticesP;
 
-    unsigned int normCVBO;
-    glGenBuffers(1, &normCVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(CalculateNormals(verticesP, arrayLength)), CalculateNormals(verticesP, arrayLength), GL_DYNAMIC_DRAW);
-    //std::cout << sizeof(CalculateNormals(verticesP, arrayLength)) << std::endl; 
+    glGenBuffers(1, &cVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesP), verticesP, GL_DYNAMIC_DRAW);  
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
-
     glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    
-
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);    
-
-    glVertexAttribPointer(1, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    
 
     glBindVertexArray(0);
+
+    //normals
+    int arrayLength = *(&verticesP + 1) - verticesP;
+    unsigned int normCVBO;
+
+    glGenBuffers(1, &normCVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arrayLength, CalculateNormals(verticesP, arrayLength), GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(1);
  
 //PLANE
     unsigned int pVAO, pVBO;
 
     glGenVertexArrays(1, &pVAO);
-    glGenBuffers(1, &pVBO);
-
     glBindVertexArray(pVAO);
 
+    glGenBuffers(1, &pVBO);
     glBindBuffer(GL_ARRAY_BUFFER, pVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -437,10 +433,6 @@ float verticesP[] = {
         glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(cModel)); 
         glUniformMatrix4fv(cprojLoc, 1, GL_FALSE, glm::value_ptr(cProjection)); 
         glUniformMatrix4fv(cviewLoc, 1, GL_FALSE, glm::value_ptr(cView));
-
-
-
-
 
 
         glBindVertexArray(cVAO);

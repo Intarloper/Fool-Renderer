@@ -35,14 +35,13 @@ void main()
 	vec3 lightPos = vec3(1.0f, 1.0f, 0.0f);
 	//Lighiting Section
 	//ambient
-	float ambientIntensity = 0.1f;
+	float ambientIntensity = 0.8f;
 	
 	vec3 ambientValue = ambientIntensity * lightColor;
 	vec3 ambientResult = ambientValue * objectColor;
 	//diffuse
-	vec3 norm = normalize(normal);
 	vec3 lightDirection = normalize(lightPos - FragPos);
-
+	vec3 norm = normalize(normal);
 	float diff = max(dot(norm, lightDirection), 0.0);
 	vec3 diffuse = diff * lightColor;
 
