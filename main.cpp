@@ -1,7 +1,8 @@
 #include "Libraries/GLM/ext/matrix_clip_space.hpp"
 #include "Libraries/GLM/ext/matrix_transform.hpp"
+#include "Libraries/GLM/ext/quaternion_geometric.hpp"
 #include "Libraries/GLM/ext/vector_float3.hpp"
-#include "Libraries/PL/VecLibrary.h"
+#include "Libraries/GLM/geometric.hpp"
 #include "Libraries/PL/ClassShader.h"
 #include "Libraries/PL/ClassCamera.h"
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
@@ -10,6 +11,9 @@
 #include "Libraries/GLM/glm.hpp"
 #include "Libraries/GLM/gtc/matrix_transform.hpp"
 #include "Libraries/GLM/gtc/type_ptr.hpp"
+
+#include "Libraries/GLM/gtx/string_cast.hpp"
+
 #include <gl/gl.h>
 #include <stdlib.h>
 #include <iostream>
@@ -34,6 +38,42 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+//NEEDS WORK
+float *CalculateNormals(float vertices[], int arraySize){
+
+    int arrayLength = arraySize;
+    std::cout << arrayLength << std::endl;
+    float *result = new float[arrayLength];
+    for(int i = 0; i < arrayLength; i += 9){
+        
+        glm::vec3 vecA = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+        glm::vec3 vecB = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+        glm::vec3 vecC = glm::vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+        
+        //std::cout << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
+
+        glm::vec3 edgeAB = vecB - vecA;
+        glm::vec3 edgeAC = vecC - vecA;
+
+        glm::vec3 crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+        std::cout << glm::to_string(crossResult) << std::endl;
+        for(int j = 0; j < ((arrayLength * 3)/ 9); j += 3){
+            result[j] = crossResult.x;
+            result[j + 1] = crossResult.y;
+            result[j + 2] = crossResult.z;
+
+            //std::cout << crossResult.x << std::endl;
+            //std::cout<< crossResult.y << std::endl;
+            //std::cout << crossResult.z <<std::endl;
+
+            std::cout << result[j] << " " << result[j + 1] << " " << result[j + 2] << std::endl;
+            
+        };
+    };
+    
+    return result;
+    
+};
 int main()
 {
     // glfw: initialize and configure
@@ -74,12 +114,13 @@ int main()
     // build and compile our shader program
     Shader ourShader("Resources/Shaders/Shader.shader");
     Shader planeShader("Resources/Shaders/floor.shader");
+    Shader LightingShader("Resources/Shaders/Lighting.shader");
 
     ShaderProgramSource source = Parse("Resources/Shaders/Shader.shader");
-    std::cout << source.VertexSource << std::endl;
     
     ShaderProgramSource planeSource = Parse("Resources/Shaders/floor.shader");
-    std::cout << planeSource.VertexSource << std::endl;
+    
+    ShaderProgramSource lightingSource = Parse("Resources/Shaders/Lighting.shader");
 
    float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
@@ -123,6 +164,49 @@ int main()
         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
+}; 
+float verticesP[] = {
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f,  0.5f, -0.5f, 
+        0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+        0.5f, -0.5f,  0.5f,  
+        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,  
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,  
+
+        -0.5f,  0.5f,  0.5f,  
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f, 
+        0.5f, -0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,  
+        0.5f, -0.5f, -0.5f,  
+        0.5f, -0.5f,  0.5f,  
+        0.5f, -0.5f,  0.5f, 
+        -0.5f, -0.5f,  0.5f,  
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+        0.5f,  0.5f, -0.5f,  
+        0.5f,  0.5f,  0.5f, 
+        0.5f,  0.5f,  0.5f,  
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f
 }; 
 
     float planeVertices[]{
@@ -168,6 +252,45 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
     glBindVertexArray(0); 
+
+//Uncolored cube
+    
+    unsigned int cVBO, cVAO;
+
+    glGenVertexArrays(1, &cVAO);
+    glGenBuffers(1, &cVBO);
+
+    glBindVertexArray(cVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesP), verticesP, GL_DYNAMIC_DRAW);
+    //std::cout << sizeof(verticesP) << std::endl;
+    
+    //normals
+    int arrayLength = *(&verticesP + 1) - verticesP;
+
+    unsigned int normCVBO;
+    glGenBuffers(1, &normCVBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(CalculateNormals(verticesP, arrayLength)), CalculateNormals(verticesP, arrayLength), GL_DYNAMIC_DRAW);
+    //std::cout << sizeof(CalculateNormals(verticesP, arrayLength)) << std::endl; 
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
+
+    glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    
+
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);    
+
+    glVertexAttribPointer(1, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    
+
+    glBindVertexArray(0);
+ 
 //PLANE
     unsigned int pVAO, pVBO;
 
@@ -185,6 +308,16 @@ int main()
     glBindVertexArray(0);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
+    
+
+    /* for(int i = 0; i < arrayLength; i++){   
+        std::cout << CalculateNormals(planeVertices,arrayLength)[i] << std::endl;
+    }; */
+    
+
+    
+
+
     glEnable(GL_DEPTH_TEST);
 
     // render loop
@@ -239,7 +372,12 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); 
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
- 
+        
+
+
+        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        int lightCol = glGetUniformLocation(ourShader.ID, "lightColor");
+        glUniform3fv(lightCol, 1, glm::value_ptr(lightColor));
         
 
         glBindVertexArray(VAO); 
@@ -276,15 +414,40 @@ int main()
         glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
         glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
         glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
- 
-
-
-
-
-
+        
 
         glBindVertexArray(pVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        //cube w no color data
+        LightingShader.use();
+        glm::mat4 cModel = glm::mat4(1.0f);
+        cModel = glm::translate(cModel, glm::vec3(2.0f, 0.0f, 0.0f));
+
+        glm::mat4 cProjection = glm::mat4(1.0f);
+        cProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 cView = glm::mat4(1.0f);
+        cView = camera.GetViewMatrix();
+
+        int cmodelLoc = glGetUniformLocation(LightingShader.ID, "model");
+        int cprojLoc = glGetUniformLocation(LightingShader.ID, "proj");
+        int cviewLoc = glGetUniformLocation(LightingShader.ID, "view");
+ 
+        glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(cModel)); 
+        glUniformMatrix4fv(cprojLoc, 1, GL_FALSE, glm::value_ptr(cProjection)); 
+        glUniformMatrix4fv(cviewLoc, 1, GL_FALSE, glm::value_ptr(cView));
+
+
+
+
+
+
+        glBindVertexArray(cVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
