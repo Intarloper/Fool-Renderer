@@ -15,10 +15,14 @@
 #include "Libraries/GLM/gtx/string_cast.hpp"
 
 #include <gl/gl.h>
+#include <iterator>
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
 
+
+
+#define print std::cout
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
@@ -43,9 +47,11 @@ float *CalculateNormals(float vertices[], int arraySize){
 
     int arrayLength = arraySize;
     std::cout << arrayLength << std::endl;
-    float *result = new float[arrayLength];
-
+    //float *result = new float[arrayLength];
+    static float result[108] = {};
     glm::vec3 crossResult = glm::vec3(0.0f, 0.0f, 0.0f);
+    
+    int resultIndex = 0;
 
     for(int i = 0; i < arrayLength; i += 9){
         
@@ -61,30 +67,37 @@ float *CalculateNormals(float vertices[], int arraySize){
         crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
     
         for(int j = 0; j < 9; j += 9){
-            result[j] = crossResult.x;
-            result[j + 1] = crossResult.y;
-            result[j + 2] = crossResult.z;
+            result[resultIndex] = crossResult.x;
+            result[resultIndex + 1] = crossResult.y;
+            result[resultIndex + 2] = crossResult.z;
 
-            result[j + 3] = crossResult.x;
-            result[j + 4] = crossResult.y;
-            result[j + 5] = crossResult.z;
+            result[resultIndex + 3] = crossResult.x;
+            result[resultIndex + 4] = crossResult.y;
+            result[resultIndex + 5] = crossResult.z;
 
-            result[j + 6] = crossResult.x;
-            result[j + 7] = crossResult.y;
-            result[j + 8] = crossResult.z;
+            result[resultIndex + 6] = crossResult.x;
+            result[resultIndex + 7] = crossResult.y;
+            result[resultIndex + 8] = crossResult.z;
+            
 
+            resultIndex += 9;
             //std::cout << crossResult.x << std::endl;
             //std::cout<< crossResult.y << std::endl;
             //std::cout << crossResult.z <<std::endl;
 
-            std::cout << result[j] << " " << result[j + 1] << " " << result[j + 2] << std::endl;
-            std::cout << result[j + 3] << " " << result[j + 4] << " " << result[j + 5] << std::endl;
-            std::cout << result[j + 6] << " " << result[j + 7] << " " << result[j + 8] << std::endl;
-        };
+            //std::cout << result[j] << " " << result[j + 1] << " " << result[j + 2] << std::endl;
+            //std::cout << result[j + 3] << " " << result[j + 4] << " " << result[j + 5] << std::endl;
+            //std::cout << result[j + 6] << " " << result[j + 7] << " " << result[j + 8] << std::endl;
+            //
             
+        };
+          
         
     };
-    
+     /*for(int k = 0; k < arrayLength; k += 3){
+        print << result[k] << " " << result[k + 1] << " " << result[k + 2]<< std::endl;
+    }; */
+    print << sizeof(result) << std::endl;
     return result;
     
 };
@@ -277,17 +290,28 @@ float verticesP[] = {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-    glBindVertexArray(0);
+    
 
     //normals
     int arrayLength = *(&verticesP + 1) - verticesP;
     unsigned int normCVBO;
+    float normArr[108] = {};
+    
+    for(int i = 0; i < arrayLength; i++){
+        normArr[i] = CalculateNormals(verticesP, arrayLength)[i];
+    };
+    for(int j = 0; j < arrayLength; j += 3){
+        print << normArr[j] << " " << normArr[j + 1] << " " << normArr[j + 2] << std::endl;
+    };
+
 
     glGenBuffers(1, &normCVBO);
     glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * arrayLength, CalculateNormals(verticesP, arrayLength), GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(normArr), normArr, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    
+    glBindVertexArray(0);
  
 //PLANE
     unsigned int pVAO, pVBO;

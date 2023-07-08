@@ -35,7 +35,7 @@ void main()
 	vec3 lightPos = vec3(1.0f, 1.0f, 0.0f);
 	//Lighiting Section
 	//ambient
-	float ambientIntensity = 0.8f;
+	float ambientIntensity = .1f;
 	
 	vec3 ambientValue = ambientIntensity * lightColor;
 	vec3 ambientResult = ambientValue * objectColor;

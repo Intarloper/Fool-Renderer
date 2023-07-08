@@ -52,7 +52,8 @@ void main()
 	
 	vec3 ambientValue = ambientIntensity * lightColor;
 	vec3 ambientResult = ambientValue * color.xyz;
-	FragColor = vec4(ambientResult, 1.0f);
+	//FragColor = vec4(ambientResult, 1.0f);
+	FragColor = vec4(color.xyz, 1.0f);
 	
 };
 
