@@ -52,20 +52,55 @@ float *CalculateNormals(float vertices[], int arraySize){
     glm::vec3 crossResult = glm::vec3(0.0f, 0.0f, 0.0f);
     
     int resultIndex = 0;
-
+    int crossIndex = 0;
+    int swap = 0;
     for(int i = 0; i < arrayLength; i += 9){
         
-        glm::vec3 vecA = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        glm::vec3 vecB = glm::vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-        glm::vec3 vecC = glm::vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+        glm::vec3 vecA = glm::vec3(vertices[crossIndex], vertices[crossIndex + 1], vertices[crossIndex + 2]);
+        glm::vec3 vecB = glm::vec3(vertices[crossIndex + 3], vertices[crossIndex + 4], vertices[crossIndex + 5]);
+        glm::vec3 vecC = glm::vec3(vertices[crossIndex + 6], vertices[crossIndex + 7], vertices[crossIndex + 8]);
         
-        //std::cout << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
+        print << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
 
         glm::vec3 edgeAB = vecB - vecA;
         glm::vec3 edgeAC = vecC - vecA;
 
-        crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-    
+        print << "Edge AB: " << glm::to_string(edgeAB) << std::endl;
+        print << "Edge AC: " << glm::to_string(edgeAC) << std::endl;
+
+            
+        if(swap < 2){
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+        }
+        else if(swap >= 2 && swap < 6){
+            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            swap++;
+        }
+        else if(swap >= 6  && swap < 8){
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+        }
+        else if(swap >= 8 && swap < 10){
+            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            swap++;
+        }
+        else if (swap >= 10 && swap < 12) {
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+            if(swap == 12){
+                swap = 0;
+            };
+        }
+ 
+   
+ 
+   
+        
+
+        
+
+        crossIndex += 9;
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;
             result[resultIndex + 1] = crossResult.y;
@@ -89,6 +124,8 @@ float *CalculateNormals(float vertices[], int arraySize){
             //std::cout << result[j + 3] << " " << result[j + 4] << " " << result[j + 5] << std::endl;
             //std::cout << result[j + 6] << " " << result[j + 7] << " " << result[j + 8] << std::endl;
             //
+            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            crossResult *= glm::vec3(-1.0f,-1.0f,-1.0f);
             
         };
           
@@ -309,7 +346,7 @@ float verticesP[] = {
     glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normArr), normArr, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 0, (void*)0);
     
     glBindVertexArray(0);
  
@@ -324,6 +361,8 @@ float verticesP[] = {
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    
+
 
     glBindVertexArray(0);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -414,6 +453,7 @@ float verticesP[] = {
             glDrawArrays(GL_TRIANGLES, 0 , 36);
         }; 
         //PLANE
+        
         planeShader.use();
 
         glm::mat4 planeModel = glm::mat4(1.0f);
@@ -439,10 +479,13 @@ float verticesP[] = {
         glBindVertexArray(pVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        
+
         //cube w no color data
         LightingShader.use();
         glm::mat4 cModel = glm::mat4(1.0f);
         cModel = glm::translate(cModel, glm::vec3(2.0f, 0.0f, 0.0f));
+        cModel = glm::rotate(cModel, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
 
         glm::mat4 cProjection = glm::mat4(1.0f);
         cProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -453,6 +496,9 @@ float verticesP[] = {
         int cmodelLoc = glGetUniformLocation(LightingShader.ID, "model");
         int cprojLoc = glGetUniformLocation(LightingShader.ID, "proj");
         int cviewLoc = glGetUniformLocation(LightingShader.ID, "view");
+
+        int viewPosLoc = glGetUniformLocation(LightingShader.ID, "viewPos");
+        glUniform3fv(viewPosLoc,1, glm::value_ptr(camera.Position));
  
         glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(cModel)); 
         glUniformMatrix4fv(cprojLoc, 1, GL_FALSE, glm::value_ptr(cProjection)); 
