@@ -15,7 +15,8 @@ void main()
 	gl_Position = proj * view * model * vec4(aPos.xyz, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
 	normal = mat3(transpose(inverse(model))) * aNorm;
-};
+	//normal = aNorm;
+};	
 
 
 #shader fragment

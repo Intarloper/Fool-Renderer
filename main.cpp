@@ -93,13 +93,6 @@ float *CalculateNormals(float vertices[], int arraySize){
             };
         }
  
-   
- 
-   
-        
-
-        
-
         crossIndex += 9;
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;
@@ -334,8 +327,10 @@ float verticesP[] = {
     unsigned int normCVBO;
     float normArr[108] = {};
     
+    float* result = CalculateNormals(verticesP, arrayLength);
+
     for(int i = 0; i < arrayLength; i++){
-        normArr[i] = CalculateNormals(verticesP, arrayLength)[i];
+        normArr[i] = result[i];
     };
     for(int j = 0; j < arrayLength; j += 3){
         print << normArr[j] << " " << normArr[j + 1] << " " << normArr[j + 2] << std::endl;
