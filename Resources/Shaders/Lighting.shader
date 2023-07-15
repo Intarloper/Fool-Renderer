@@ -29,17 +29,18 @@ in vec3 FragPos;
 out vec4 FragColor;
 
 uniform vec3 viewPos;
+uniform vec3 lightPos;
+uniform vec3 lightColor;
+uniform vec3 objectColor;
+
+uniform float specValue;
+uniform float ambientIntensity;
 
 
 void main()
 {
-	vec3 objectColor = vec3(1.0f, 0.0f, 1.0f);
-	vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
-	vec3 lightPos = vec3(1.0f, 1.0f, 1.0f);
 	//Lighiting Section
 	//ambient
-	float ambientIntensity = .25f;
-	
 	vec3 ambientValue = ambientIntensity * lightColor;
 	vec3 ambientResult = ambientValue * objectColor;
 
@@ -54,7 +55,7 @@ void main()
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 reflectDir = reflect(-lightDirection, norm);
 
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 128);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), specValue);
 	vec3 specular = specStrength * spec * lightColor;
 	
 	vec3 result = (ambientResult + diffuse + specular) * objectColor;

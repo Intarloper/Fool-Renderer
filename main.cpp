@@ -3,16 +3,22 @@
 #include "Libraries/GLM/ext/quaternion_geometric.hpp"
 #include "Libraries/GLM/ext/vector_float3.hpp"
 #include "Libraries/GLM/geometric.hpp"
+
 #include "Libraries/PL/ClassShader.h"
 #include "Libraries/PL/ClassCamera.h"
+
 #include "Libraries/GLAD/glad/KHR/khrplatform.h"
 #include "Libraries/GLAD/glad/glad.h"
+
 #include "Libraries/GLFW/include/GLFW/glfw3.h"
 #include "Libraries/GLM/glm.hpp"
 #include "Libraries/GLM/gtc/matrix_transform.hpp"
 #include "Libraries/GLM/gtc/type_ptr.hpp"
-
 #include "Libraries/GLM/gtx/string_cast.hpp"
+
+#include "Libraries/IMGUI/imgui.h"
+#include "Libraries/IMGUI/imgui_impl_opengl3.h"
+#include "Libraries/IMGUI/imgui_impl_glfw.h"
 
 #include <gl/gl.h>
 #include <iterator>
@@ -23,6 +29,9 @@
 
 
 #define print std::cout
+#define IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
@@ -38,6 +47,7 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 
 bool firstMouse = true;
+bool stopPollEvents = false;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -68,7 +78,7 @@ float *CalculateNormals(float vertices[], int arraySize){
         print << "Edge AB: " << glm::to_string(edgeAB) << std::endl;
         print << "Edge AC: " << glm::to_string(edgeAC) << std::endl;
 
-            
+        //hyper-cope fix, maybe one day i will be smart enough to actually find the answer  
         if(swap < 2){
             crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
             swap++;
@@ -92,7 +102,6 @@ float *CalculateNormals(float vertices[], int arraySize){
                 swap = 0;
             };
         }
- 
         crossIndex += 9;
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;
@@ -109,27 +118,18 @@ float *CalculateNormals(float vertices[], int arraySize){
             
 
             resultIndex += 9;
-            //std::cout << crossResult.x << std::endl;
-            //std::cout<< crossResult.y << std::endl;
-            //std::cout << crossResult.z <<std::endl;
-
-            //std::cout << result[j] << " " << result[j + 1] << " " << result[j + 2] << std::endl;
-            //std::cout << result[j + 3] << " " << result[j + 4] << " " << result[j + 5] << std::endl;
-            //std::cout << result[j + 6] << " " << result[j + 7] << " " << result[j + 8] << std::endl;
-            //
-            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-            crossResult *= glm::vec3(-1.0f,-1.0f,-1.0f);
+            //crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            //crossResult *= glm::vec3(-1.0f,-1.0f,-1.0f);
             
-        };
-          
-        
+        };  
     };
-     /*for(int k = 0; k < arrayLength; k += 3){
-        print << result[k] << " " << result[k + 1] << " " << result[k + 2]<< std::endl;
-    }; */
     print << sizeof(result) << std::endl;
     return result;
+};
+
+void DrawImGui(){
     
+
 };
 int main()
 {
@@ -166,6 +166,16 @@ int main()
         return -1;
     }
 
+    //IMGUI setup
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init();
 
 
     // build and compile our shader program
@@ -222,7 +232,7 @@ int main()
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
 }; 
-float verticesP[] = {
+    float verticesP[] = {
         -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
         0.5f,  0.5f, -0.5f, 
@@ -357,22 +367,24 @@ float verticesP[] = {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     
-
-
     glBindVertexArray(0);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
-    
-
-    /* for(int i = 0; i < arrayLength; i++){   
-        std::cout << CalculateNormals(planeVertices,arrayLength)[i] << std::endl;
-    }; */
-    
-
-    
 
 
     glEnable(GL_DEPTH_TEST);
+    
+
+    //declare these out of loop so they can be changed by imGui
+    //
+    //Uniforms for lighting shader
+    glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 1.0f);
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f);
+    glm::vec3 cubeColor(1.0f, 1.0f, 1.0f);
+
+    float ambientIntensity = 0.1f;
+    float specValue = 32.0f;
+    //Uniforms for lighting shader
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -381,73 +393,19 @@ float verticesP[] = {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;  
 
-
-        float xMove;
-        float yMove;
-        float zMove;
-        
-        xMove += .01;
-        yMove += .01;
-        zMove += .01;
-        if(xMove  > 10000 || yMove > 10000 || zMove > 10000){
-            xMove = 0;
-            yMove = 0;
-            zMove = 0;
-        }
-
         // input
         processInput(window);
 
         // render
-        glClearColor(0.59f, 0.8f, 0.9f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Calls the shader program we set up outside of render loop
         
-        ourShader.use();
-    
-        
-        //3D
-        //CUBE
-        glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
-
-        glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-        glm::mat4 view = glm::mat4(1.0f);
-        view = camera.GetViewMatrix();
-
-        int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        int projLoc = glGetUniformLocation(ourShader.ID, "proj");
-        int viewLoc = glGetUniformLocation(ourShader.ID, "view");
- 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection)); 
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        
-
-
-        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-        int lightCol = glGetUniformLocation(ourShader.ID, "lightColor");
-        glUniform3fv(lightCol, 1, glm::value_ptr(lightColor));
-        
-
-        glBindVertexArray(VAO); 
-        //
-        for(int i = 0; i < 3; i++){
-            glm::mat4 model = glm::mat4(1.0f);
-            //model = glm::translate(model, postions[i] * glm::vec3(sinf(xMove), cosf(yMove), 2 * sin(zMove)));
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) , postions[i]);
-            model = glm::scale(model, glm::vec3(.75f, .75f, .75f));
-            model = glm::translate(model, postions[i]);
-
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
-     
-            glDrawArrays(GL_TRIANGLES, 0 , 36);
-        }; 
-        //PLANE
+        //imGui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+            
+        //FLOOR PLANE
         
         planeShader.use();
 
@@ -476,10 +434,28 @@ float verticesP[] = {
 
         
 
-        //cube w no color data
+        //cube
         LightingShader.use();
+
+
+        //Light Uniforms
+        int _lightCol = glGetUniformLocation(LightingShader.ID, "lightColor");
+        glUniform3fv(_lightCol, 1, glm::value_ptr(lightColor));
+
+        int _lightPos = glGetUniformLocation(LightingShader.ID, "lightPos");
+        glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
+
+        //cube uniforms
+        int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
+        glUniform3fv(_cubeColor, 1, glm::value_ptr(cubeColor));
+        int _cubeAmbInt = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
+        glUniform1f(_cubeAmbInt, ambientIntensity);
+        int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
+        glUniform1f(_cubeSpecVal, specValue);
+
+
         glm::mat4 cModel = glm::mat4(1.0f);
-        cModel = glm::translate(cModel, glm::vec3(2.0f, 0.0f, 0.0f));
+        cModel = glm::translate(cModel, cubePosition);
         cModel = glm::rotate(cModel, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
 
         glm::mat4 cProjection = glm::mat4(1.0f);
@@ -491,31 +467,61 @@ float verticesP[] = {
         int cmodelLoc = glGetUniformLocation(LightingShader.ID, "model");
         int cprojLoc = glGetUniformLocation(LightingShader.ID, "proj");
         int cviewLoc = glGetUniformLocation(LightingShader.ID, "view");
-
-        int viewPosLoc = glGetUniformLocation(LightingShader.ID, "viewPos");
-        glUniform3fv(viewPosLoc,1, glm::value_ptr(camera.Position));
- 
         glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(cModel)); 
         glUniformMatrix4fv(cprojLoc, 1, GL_FALSE, glm::value_ptr(cProjection)); 
         glUniformMatrix4fv(cviewLoc, 1, GL_FALSE, glm::value_ptr(cView));
 
-
+        int viewPosLoc = glGetUniformLocation(LightingShader.ID, "viewPos");
+        glUniform3fv(viewPosLoc,1, glm::value_ptr(camera.Position));
+ 
         glBindVertexArray(cVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
+        //imGui menu 
+        ImGui::Begin("Options Menu");
+        ImGui::BulletText("Press Tab to use menu");
+        ImGui::BulletText("Press Tilde to exit options");
+        if(ImGui::CollapsingHeader("Directional Light")){
+            ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
+            ImGui::ColorEdit3("Light Color", &lightColor.x);
+        };
+        if(ImGui::CollapsingHeader("Cube Options")){
+            ImGui::SliderFloat3("Cube Position", &cubePosition.x, -50.0f, 50.0f);
+            if(ImGui::CollapsingHeader("Cube Shader Options")){
+                ImGui::ColorEdit3("Cube Color", &cubeColor.x);
+                ImGui::SliderFloat("Cube Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
+                ImGui::SliderFloat("Cube Specular Value", &specValue, 0.0f, 256.0f);
+            };
 
+        };
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        if(!stopPollEvents){
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        };
+        if(stopPollEvents){
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        };
+
     }
 
 
     // optional: de-allocate all resources once they've outlived their purpose:
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-   
+    
+    //imGui
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     //ALWAYS CALL AT END
@@ -530,7 +536,10 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+        stopPollEvents = true;
+    if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
+        stopPollEvents = false;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -571,7 +580,9 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    //Check if we are using UI so we dont move camera while doing so
+    if(!stopPollEvents)
+        camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
