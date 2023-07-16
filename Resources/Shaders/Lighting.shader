@@ -36,6 +36,20 @@ uniform vec3 objectColor;
 uniform float specValue;
 uniform float ambientIntensity;
 
+struct PointLight {
+	vec3 position;
+	vec3 color;
+
+	float constant;
+	float linear;
+	float quadratic;
+};
+
+
+uniform PointLight light;
+
+uniform bool lightType;
+vec3 result;
 
 void main()
 {
@@ -45,7 +59,7 @@ void main()
 	vec3 ambientResult = ambientValue * objectColor;
 
 	//diffuse
-	vec3 lightDirection = normalize(lightPos - FragPos);
+	vec3 lightDirection = normalize( lightPos - FragPos);
 	vec3 norm = normalize(normal);
 	float diff = max(dot(norm, lightDirection), 0.0);
 	vec3 diffuse = diff * lightColor;
@@ -57,6 +71,18 @@ void main()
 
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), specValue);
 	vec3 specular = specStrength * spec * lightColor;
+	
+	//point light calc + implementation
+	if(lightType){
+		float distance = length(light.position - FragPos);
+		float attenuation = 1.0 / (light.constant + light.linear * distance + 
+				   light.quadratic * (distance * distance));
+	
+		ambientResult *= attenuation;
+		diffuse *= attenuation;
+		specular *= attenuation;
+		
+	};
 	
 	vec3 result = (ambientResult + diffuse + specular) * objectColor;
 	

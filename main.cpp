@@ -38,8 +38,8 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void processInput(GLFWwindow *window);
 
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH =  1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -127,10 +127,6 @@ float *CalculateNormals(float vertices[], int arraySize){
     return result;
 };
 
-void DrawImGui(){
-    
-
-};
 int main()
 {
     // glfw: initialize and configure
@@ -189,49 +185,6 @@ int main()
     
     ShaderProgramSource lightingSource = Parse("Resources/Shaders/Lighting.shader");
 
-   float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f
-}; 
     float verticesP[] = {
         -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
@@ -287,9 +240,9 @@ int main()
     };
 
     glm::vec3 postions[]{
-        glm::vec3(0.0, 1.0, 0.0),
-        glm::vec3(1.0, 0.0, 0.0),
-        glm::vec3(-1.0, 0.0, 0.0)
+        glm::vec3(0.0, 0.0, 0.0),
+        glm::vec3(0.0, 0.0, 2.0),
+        glm::vec3(0.0, 0.0, 5.0)
     };
 
    /* unsigned int indices[] = {  // note that we start from 0!
@@ -297,24 +250,6 @@ int main()
         1, 2, 3   // second Triangle
     }; */
     
-//CUBE
-    unsigned int VBO, VAO;
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-    //Position Attrib
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    //Color Attrib
-    glVertexAttribPointer(1, 3, GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    glBindVertexArray(0); 
 
 //Uncolored cube
     
@@ -381,9 +316,14 @@ int main()
 
     glm::vec3 cubePosition(0.0f, 0.0f, 0.0f);
     glm::vec3 cubeColor(1.0f, 1.0f, 1.0f);
+    float cubeRotate = 0.0f;
+    float cubeRotateX , cubeRotateY , cubeRotateZ;
+    bool rotateX = false, rotateY = false, rotateZ = false;
 
     float ambientIntensity = 0.1f;
     float specValue = 32.0f;
+
+    bool lightType = false;
     //Uniforms for lighting shader
 
     // render loop
@@ -445,6 +385,21 @@ int main()
         int _lightPos = glGetUniformLocation(LightingShader.ID, "lightPos");
         glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
 
+        int _lightPosition = glGetUniformLocation(LightingShader.ID, "light.position");
+        glUniform3fv(_lightPosition, 1, glm::value_ptr(lightPos));
+
+        int _lightLinear = glGetUniformLocation(LightingShader.ID, "light.linear");
+        glUniform1f(_lightLinear, .09f);
+
+        int _lightQuadratic = glGetUniformLocation(LightingShader.ID, "light.quadratic");
+        glUniform1f(_lightQuadratic, .032f);
+
+        int _lightConstant = glGetUniformLocation(LightingShader.ID, "light.constant");
+        glUniform1f(_lightConstant, 1.0f);
+
+        int _lightType = glGetUniformLocation(LightingShader.ID, "lightType");
+        glUniform1i(_lightType, lightType);
+
         //cube uniforms
         int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
         glUniform3fv(_cubeColor, 1, glm::value_ptr(cubeColor));
@@ -453,10 +408,27 @@ int main()
         int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
         glUniform1f(_cubeSpecVal, specValue);
 
+        //For ImGui Menu
+        if(rotateX){
+            cubeRotateX = 1.0f;
+            cubeRotateY = 0.0f;
+            cubeRotateZ = 0.0f;
+        };
+        if(rotateY){
+            cubeRotateX = 0.0f;
+            cubeRotateY = 1.0f;
+            cubeRotateZ = 0.0f;
+        };
+        if(rotateZ){
+            cubeRotateX = 0.0f;
+            cubeRotateY = 0.0f;
+            cubeRotateZ = 1.0f;
+        };
+
 
         glm::mat4 cModel = glm::mat4(1.0f);
         cModel = glm::translate(cModel, cubePosition);
-        cModel = glm::rotate(cModel, (float)glfwGetTime() * glm::radians(50.0f) , glm::vec3(1.0f, 0.5f, 0.0f));
+        cModel = glm::rotate(cModel,  glm::radians(cubeRotate) , glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
 
         glm::mat4 cProjection = glm::mat4(1.0f);
         cProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -473,21 +445,54 @@ int main()
 
         int viewPosLoc = glGetUniformLocation(LightingShader.ID, "viewPos");
         glUniform3fv(viewPosLoc,1, glm::value_ptr(camera.Position));
- 
+        
         glBindVertexArray(cVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for(int i = 0; i < 3; i++){
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, postions[i] + cubePosition);
+            model = glm::rotate(model,  glm::radians(cubeRotate) , glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
+
+            glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        };
+        for(int j = 0; j < 1; j++){
+            glm::mat4 lightModel = glm::mat4(1.0f);
+            lightModel = glm::translate(lightModel, lightPos);
+            lightModel = glm::scale(lightModel, glm::vec3(0.25f, 0.25f, 0.25f));
+
+            glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
+
+            glDrawArrays(GL_TRIANGLES, 0 , 36);
+        };
+
+
 
 
         //imGui menu 
         ImGui::Begin("Options Menu");
         ImGui::BulletText("Press Tab to use menu");
         ImGui::BulletText("Press Tilde to exit options");
-        if(ImGui::CollapsingHeader("Directional Light")){
-            ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
-            ImGui::ColorEdit3("Light Color", &lightColor.x);
+        if(ImGui::CollapsingHeader("Light")){
+            ImGui::Checkbox("Use Point Light?", &lightType);
+            if(ImGui::CollapsingHeader("Point Light")){
+                ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
+                ImGui::ColorEdit3("Light Color", &lightColor.x);
+            };
+            if(ImGui::CollapsingHeader("Directional Light")){
+                ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
+                ImGui::ColorEdit3("Light Color", &lightColor.x);
+            };
         };
         if(ImGui::CollapsingHeader("Cube Options")){
             ImGui::SliderFloat3("Cube Position", &cubePosition.x, -50.0f, 50.0f);
+            ImGui::SliderFloat("CubeRotation", &cubeRotate, 0.0f, 360.0f);
+            if(ImGui::BeginTable("Rotation Axis", 3)){
+                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate X", &rotateX);
+                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate Y", &rotateY);
+                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate Z", &rotateZ);
+                ImGui::EndTable();
+            };
             if(ImGui::CollapsingHeader("Cube Shader Options")){
                 ImGui::ColorEdit3("Cube Color", &cubeColor.x);
                 ImGui::SliderFloat("Cube Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
@@ -513,10 +518,6 @@ int main()
 
     }
 
-
-    // optional: de-allocate all resources once they've outlived their purpose:
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
     
     //imGui
     ImGui_ImplOpenGL3_Shutdown();
