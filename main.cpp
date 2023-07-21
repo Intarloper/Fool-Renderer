@@ -29,6 +29,7 @@
 
 
 #define print std::cout
+#define end std::endl
 #define IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS
 
 
@@ -37,6 +38,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void processInput(GLFWwindow *window);
 
+float *CalculateNormals(float verticies[], int arraySize);
+
+void ImGuiSetup(GLFWwindow *window);
+void GLSetup();
+void GLWindowSetup(GLFWwindow *window);
 
 const unsigned int SCR_WIDTH =  1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -52,94 +58,14 @@ bool stopPollEvents = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-//NEEDS WORK
-float *CalculateNormals(float vertices[], int arraySize){
-
-    int arrayLength = arraySize;
-    std::cout << arrayLength << std::endl;
-    //float *result = new float[arrayLength];
-    static float result[108] = {};
-    glm::vec3 crossResult = glm::vec3(0.0f, 0.0f, 0.0f);
-    
-    int resultIndex = 0;
-    int crossIndex = 0;
-    int swap = 0;
-    for(int i = 0; i < arrayLength; i += 9){
-        
-        glm::vec3 vecA = glm::vec3(vertices[crossIndex], vertices[crossIndex + 1], vertices[crossIndex + 2]);
-        glm::vec3 vecB = glm::vec3(vertices[crossIndex + 3], vertices[crossIndex + 4], vertices[crossIndex + 5]);
-        glm::vec3 vecC = glm::vec3(vertices[crossIndex + 6], vertices[crossIndex + 7], vertices[crossIndex + 8]);
-        
-        print << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
-
-        glm::vec3 edgeAB = vecB - vecA;
-        glm::vec3 edgeAC = vecC - vecA;
-
-        print << "Edge AB: " << glm::to_string(edgeAB) << std::endl;
-        print << "Edge AC: " << glm::to_string(edgeAC) << std::endl;
-
-        //hyper-cope fix, maybe one day i will be smart enough to actually find the answer  
-        if(swap < 2){
-            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
-            swap++;
-        }
-        else if(swap >= 2 && swap < 6){
-            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-            swap++;
-        }
-        else if(swap >= 6  && swap < 8){
-            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
-            swap++;
-        }
-        else if(swap >= 8 && swap < 10){
-            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-            swap++;
-        }
-        else if (swap >= 10 && swap < 12) {
-            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
-            swap++;
-            if(swap == 12){
-                swap = 0;
-            };
-        }
-        crossIndex += 9;
-        for(int j = 0; j < 9; j += 9){
-            result[resultIndex] = crossResult.x;
-            result[resultIndex + 1] = crossResult.y;
-            result[resultIndex + 2] = crossResult.z;
-
-            result[resultIndex + 3] = crossResult.x;
-            result[resultIndex + 4] = crossResult.y;
-            result[resultIndex + 5] = crossResult.z;
-
-            result[resultIndex + 6] = crossResult.x;
-            result[resultIndex + 7] = crossResult.y;
-            result[resultIndex + 8] = crossResult.z;
-            
-
-            resultIndex += 9;
-            //crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
-            //crossResult *= glm::vec3(-1.0f,-1.0f,-1.0f);
-            
-        };  
-    };
-    print << sizeof(result) << std::endl;
-    return result;
-};
 
 int main()
 {
     // glfw: initialize and configure
-    
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    GLSetup();    
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-
     // glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
@@ -148,12 +74,8 @@ int main()
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    GLWindowSetup(window);
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -163,16 +85,7 @@ int main()
     }
 
     //IMGUI setup
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init();
-
+    ImGuiSetup(window);
 
     // build and compile our shader program
     Shader ourShader("Resources/Shaders/Shader.shader");
@@ -291,6 +204,12 @@ int main()
     glBindVertexArray(0);
  
 //PLANE
+    
+    int planeArrLength = *(&planeVertices + 1) - planeVertices;
+    float planeNormArr[18] = {};
+    float *planeResult = CalculateNormals(planeVertices, planeArrLength);
+    unsigned int pNormVBO;
+
     unsigned int pVAO, pVBO;
 
     glGenVertexArrays(1, &pVAO);
@@ -301,6 +220,15 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+
+
+    glGenBuffers(1, &pNormVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, pNormVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeNormArr), planeNormArr, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 0, (void*)0);
+
     
     glBindVertexArray(0);
 
@@ -340,39 +268,11 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        //imGui
+        //imGui init
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
             
-        //FLOOR PLANE
-        
-        planeShader.use();
-
-        glm::mat4 planeModel = glm::mat4(1.0f);
-        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        planeModel = glm::scale(planeModel, glm::vec3(10, 10, 10));
-
-        glm::mat4 planeProj = glm::mat4(1.0f);
-        planeProj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-
-        glm::mat4 planeView = glm::mat4(1.0f);
-        planeView = camera.GetViewMatrix();
-
-
-        int planeMLoc = glGetUniformLocation(planeShader.ID, "model");
-        int planePLoc = glGetUniformLocation(planeShader.ID, "proj");
-        int planeVLoc = glGetUniformLocation(planeShader.ID, "view");
-
-        glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
-        glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
-        glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
-        
-
-        glBindVertexArray(pVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        
 
         //cube
         LightingShader.use();
@@ -425,7 +325,31 @@ int main()
             cubeRotateZ = 1.0f;
         };
 
+        //FLOOR PLANE
+        glm::mat4 planeModel = glm::mat4(1.0f);
+        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        planeModel = glm::scale(planeModel, glm::vec3(10, 10, 10));
 
+        glm::mat4 planeProj = glm::mat4(1.0f);
+        planeProj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 planeView = glm::mat4(1.0f);
+        planeView = camera.GetViewMatrix();
+
+
+        int planeMLoc = glGetUniformLocation(LightingShader.ID, "model");
+        int planePLoc = glGetUniformLocation(LightingShader.ID, "proj");
+        int planeVLoc = glGetUniformLocation(LightingShader.ID, "view");
+
+        glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
+        glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
+        glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
+        
+
+        glBindVertexArray(pVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        //CUBES
         glm::mat4 cModel = glm::mat4(1.0f);
         cModel = glm::translate(cModel, cubePosition);
         cModel = glm::rotate(cModel,  glm::radians(cubeRotate) , glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
@@ -500,6 +424,12 @@ int main()
             };
 
         };
+        ImGui::End();
+
+        ImGui::Begin("Stats");
+
+        ImGui::Text(" deltaTime = %f", 1 / deltaTime);
+
         ImGui::End();
 
         ImGui::Render();
@@ -592,3 +522,108 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
+
+
+
+//NEEDS WORK
+float *CalculateNormals(float vertices[], int arraySize){
+
+    int arrayLength = arraySize;
+    std::cout << arrayLength << std::endl;
+    //float *result = new float[arrayLength];
+    static float result[108] = {};
+    glm::vec3 crossResult = glm::vec3(0.0f, 0.0f, 0.0f);
+    
+    int resultIndex = 0;
+    int crossIndex = 0;
+    int swap = 0;
+    for(int i = 0; i < arrayLength; i += 9){
+        
+        glm::vec3 vecA = glm::vec3(vertices[crossIndex], vertices[crossIndex + 1], vertices[crossIndex + 2]);
+        glm::vec3 vecB = glm::vec3(vertices[crossIndex + 3], vertices[crossIndex + 4], vertices[crossIndex + 5]);
+        glm::vec3 vecC = glm::vec3(vertices[crossIndex + 6], vertices[crossIndex + 7], vertices[crossIndex + 8]);
+        
+        print << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
+
+        glm::vec3 edgeAB = vecB - vecA;
+        glm::vec3 edgeAC = vecC - vecA;
+
+        print << "Edge AB: " << glm::to_string(edgeAB) << std::endl;
+        print << "Edge AC: " << glm::to_string(edgeAC) << std::endl;
+
+        //hyper-cope fix, maybe one day i will be smart enough to actually find the answer  
+        if(swap < 2){
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+        }
+        else if(swap >= 2 && swap < 6){
+            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            swap++;
+        }
+        else if(swap >= 6  && swap < 8){
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+        }
+        else if(swap >= 8 && swap < 10){
+            crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            swap++;
+        }
+        else if (swap >= 10 && swap < 12) {
+            crossResult = glm::normalize(glm::cross(edgeAC, edgeAB));
+            swap++;
+            if(swap == 12){
+                swap = 0;
+            };
+        }
+        crossIndex += 9;
+        for(int j = 0; j < 9; j += 9){
+            result[resultIndex] = crossResult.x;
+            result[resultIndex + 1] = crossResult.y;
+            result[resultIndex + 2] = crossResult.z;
+
+            result[resultIndex + 3] = crossResult.x;
+            result[resultIndex + 4] = crossResult.y;
+            result[resultIndex + 5] = crossResult.z;
+
+            result[resultIndex + 6] = crossResult.x;
+            result[resultIndex + 7] = crossResult.y;
+            result[resultIndex + 8] = crossResult.z;
+            
+
+            resultIndex += 9;
+            //crossResult = glm::normalize(glm::cross(edgeAB, edgeAC));
+            //crossResult *= glm::vec3(-1.0f,-1.0f,-1.0f);
+            
+        };  
+    };
+    print << sizeof(result) << std::endl;
+    return result;
+};
+
+
+void GLSetup(){
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+};
+
+void GLWindowSetup(GLFWwindow *window){
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+};
+void ImGuiSetup(GLFWwindow *window){
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init();
+};
