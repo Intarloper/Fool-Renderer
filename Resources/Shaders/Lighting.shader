@@ -21,7 +21,6 @@ void main()
 	//normal = aNorm;
 };	
 
-
 #shader fragment
 
 #version 330 core

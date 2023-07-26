@@ -237,7 +237,6 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     
-
     //declare these out of loop so they can be changed by imGui
     //
     //Uniforms for lighting shader
@@ -250,17 +249,27 @@ int main()
     float cubeRotateX , cubeRotateY , cubeRotateZ;
     bool rotateX = false, rotateY = false, rotateZ = false;
 
-    float ambientIntensity = 0.1f;
+    float ambientIntensity = 0.35f;
     float specValue = 32.0f;
 
     bool lightType = false;
     bool useBlinn = false;
-
     //Uniforms for lighting shader
+    //
+    bool polygonMode;
 
     // render loop
     while (!glfwWindowShouldClose(window))
     {
+        if(polygonMode){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else{
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        };
+
+
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;  
@@ -342,7 +351,6 @@ int main()
         //FLOOR PLANE
         glm::mat4 planeModel = glm::mat4(1.0f);
         planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        planeModel = glm::scale(planeModel, glm::vec3(10, 10, 10));
 
         glm::mat4 planeProj = glm::mat4(1.0f);
         planeProj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -361,7 +369,35 @@ int main()
         
 
         glBindVertexArray(pVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+
+        for(int i = 0; i < 10; i++){
+            glm::mat4 planeModel = glm::mat4(1.0f);
+            planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f));
+           
+            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
+
+
+            glDrawArrays(GL_TRIANGLES, 0, 6); 
+            
+            for(int j = 0; j < 10; j++){
+                glm::mat4 planeModel = glm::mat4(1.0f);
+                planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f));
+           
+                glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
+
+
+                glDrawArrays(GL_TRIANGLES, 0, 6); 
+            };
+        
+        };
+
+
+
+
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
 
         //CUBES
         glm::mat4 cModel = glm::mat4(1.0f);
@@ -422,6 +458,10 @@ int main()
                 ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
                 ImGui::ColorEdit3("Light Color", &lightColor.x);
             };
+
+        };
+        if(ImGui::CollapsingHeader("Draw Options")){
+                ImGui::Checkbox("Wireframe", &polygonMode);
         };
         if(ImGui::CollapsingHeader("Cube Options")){
             ImGui::SliderFloat3("Cube Position", &cubePosition.x, -50.0f, 50.0f);
