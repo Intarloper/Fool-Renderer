@@ -8,10 +8,13 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
+uniform float time;
+
 out vec3 normal;
 out vec3 FragPos;
 void main()
-{
+{	
+	
 	gl_Position = proj * view * model * vec4(aPos.xyz, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
 	normal = mat3(transpose(inverse(model))) * aNorm;
@@ -49,7 +52,7 @@ struct PointLight {
 uniform PointLight light;
 
 uniform bool lightType;
-vec3 result;
+uniform bool useBlinn;
 
 void main()
 {
@@ -61,16 +64,24 @@ void main()
 	//diffuse
 	vec3 lightDirection = normalize( lightPos - FragPos);
 	vec3 norm = normalize(normal);
-	float diff = max(dot(norm, lightDirection), 0.0);
+	float diff = max(dot(lightDirection, norm), 0.0);
 	vec3 diffuse = diff * lightColor;
 	//specular
 	
 	float specStrength = 0.5;
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 reflectDir = reflect(-lightDirection, norm);
+	vec3 halfwayDir = normalize(lightDirection + viewDir);
+	
+	float spec = 0.0;
+	if(useBlinn){
+		spec = pow(max(dot(norm, halfwayDir), 0.0), specValue);
+	}
+	else{
+		spec = pow(max(dot(viewDir, reflectDir), 0.0), specValue);
+	}
 
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), specValue);
-	vec3 specular = specStrength * spec * lightColor;
+	vec3 specular =  spec * lightColor;
 	
 	//point light calc + implementation
 	if(lightType){

@@ -20,11 +20,13 @@
 #include "Libraries/IMGUI/imgui_impl_opengl3.h"
 #include "Libraries/IMGUI/imgui_impl_glfw.h"
 
+
 #include <gl/gl.h>
 #include <iterator>
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
+
 
 
 
@@ -242,8 +244,8 @@ int main()
     glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 1.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f);
-    glm::vec3 cubeColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 cubePosition(0.0f, 0.5f, 0.0f);
+    glm::vec3 cubeColor(0.0f, 1.0f, 0.0f);
     float cubeRotate = 0.0f;
     float cubeRotateX , cubeRotateY , cubeRotateZ;
     bool rotateX = false, rotateY = false, rotateZ = false;
@@ -252,6 +254,8 @@ int main()
     float specValue = 32.0f;
 
     bool lightType = false;
+    bool useBlinn = false;
+
     //Uniforms for lighting shader
 
     // render loop
@@ -300,6 +304,9 @@ int main()
         int _lightType = glGetUniformLocation(LightingShader.ID, "lightType");
         glUniform1i(_lightType, lightType);
 
+        int _useBlinn = glGetUniformLocation(LightingShader.ID, "useBlinn");
+        glUniform1i(_useBlinn, useBlinn);
+
         //cube uniforms
         int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
         glUniform3fv(_cubeColor, 1, glm::value_ptr(cubeColor));
@@ -308,21 +315,28 @@ int main()
         int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
         glUniform1f(_cubeSpecVal, specValue);
 
+        //Time uniform
+        float _time = glGetUniformLocation(LightingShader.ID, "time");
+        glUniform1f(_time, currentFrame);
+
         //For ImGui Menu
         if(rotateX){
             cubeRotateX = 1.0f;
-            cubeRotateY = 0.0f;
-            cubeRotateZ = 0.0f;
+        }
+        else{
+            cubeRotateX = 0.0f;
         };
         if(rotateY){
-            cubeRotateX = 0.0f;
             cubeRotateY = 1.0f;
-            cubeRotateZ = 0.0f;
+        }
+        else{
+            cubeRotateY = 0.0f;
         };
         if(rotateZ){
-            cubeRotateX = 0.0f;
-            cubeRotateY = 0.0f;
             cubeRotateZ = 1.0f;
+        }
+        else{
+            cubeRotateZ = 0.0f;
         };
 
         //FLOOR PLANE
@@ -399,6 +413,7 @@ int main()
         ImGui::BulletText("Press Tilde to exit options");
         if(ImGui::CollapsingHeader("Light")){
             ImGui::Checkbox("Use Point Light?", &lightType);
+            ImGui::Checkbox("Use Blinn-Phong?", &useBlinn);
             if(ImGui::CollapsingHeader("Point Light")){
                 ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
                 ImGui::ColorEdit3("Light Color", &lightColor.x);
