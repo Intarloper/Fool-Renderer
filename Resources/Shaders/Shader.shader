@@ -29,23 +29,31 @@ in vec4 color;
 in vec4 gl_FragCoord;
 out vec4 FragColor;
 
-    
+uniform vec3 lightColor;
+
 void main()
 {
 	//Messing around with shader stuff, makes circles across the screen that are only rendered 
 	//inside the cubes
 
 
-	vec2 screenSize = vec2(1280,720);
-	vec4 fc = gl_FragCoord;
-	fc = vec4(fc.xy / screenSize.xy * 2.0 - 1, 0 , 1);
+	//vec2 screenSize = vec2(1280,720);
+	//vec4 fc = gl_FragCoord;
+	//fc = vec4(fc.xy / screenSize.xy * 2.0 - 1, 0 , 1);
 
-	float d = length(fc);
-	d = sin(d*10) / 10;
+	//float d = length(fc);
+	//d = sin(d*10) / 10;
 	
 	
-	FragColor = vec4(out_pos_to_color.xyw, -1 * out_pos_to_color.z ) * d * 10;
-	//FragColor = color;
+	//FragColor = vec4(out_pos_to_color.xyw, -1 * out_pos_to_color.z ) * d * 10;
+	//Lighiting Section
+
+	float ambientIntensity = 0.1f;
+	
+	vec3 ambientValue = ambientIntensity * lightColor;
+	vec3 ambientResult = ambientValue * color.xyz;
+	//FragColor = vec4(ambientResult, 1.0f);
+	FragColor = vec4(color.xyz, 1.0f);
 	
 };
 
