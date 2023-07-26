@@ -14,10 +14,15 @@ out vec3 normal;
 out vec3 FragPos;
 void main()
 {	
+	normal = mat3(transpose(inverse(model))) * aNorm;	
+
+	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
 	
-	gl_Position = proj * view * model * vec4(aPos.xyz, 1.0);
+	float displace = sin(length(modelPos.xz) * 10.0 - time) * 0.5;
+	
+	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z + displace, 1.0);
+
 	FragPos = vec3(model * vec4(aPos, 1.0));
-	normal = mat3(transpose(inverse(model))) * aNorm;
 	//normal = aNorm;
 };	
 
@@ -86,7 +91,7 @@ void main()
 	if(lightType){
 		float distance = length(light.position - FragPos);
 		float attenuation = 1.0 / (light.constant + light.linear * distance + 
-				   light.quadratic * (distance * distance));
+					light.quadratic * (distance * distance));
 	
 		ambientResult *= attenuation;
 		diffuse *= attenuation;
