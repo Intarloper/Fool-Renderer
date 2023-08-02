@@ -90,14 +90,10 @@ int main()
     ImGuiSetup(window);
 
     // build and compile our shader program
-    Shader ourShader("Resources/Shaders/Shader.shader");
-    Shader planeShader("Resources/Shaders/floor.shader");
+    Shader waveShader("Resources/Shaders/Wave.shader");
     Shader LightingShader("Resources/Shaders/Lighting.shader");
 
-    ShaderProgramSource source = Parse("Resources/Shaders/Shader.shader");
-    
-    ShaderProgramSource planeSource = Parse("Resources/Shaders/floor.shader");
-    
+    ShaderProgramSource waveSource = Parse("Resources/Shaders/Wave.shader");    
     ShaderProgramSource lightingSource = Parse("Resources/Shaders/Lighting.shader");
 
     float verticesP[] = {
@@ -244,6 +240,7 @@ int main()
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
     glm::vec3 cubePosition(0.0f, 0.5f, 0.0f);
+    glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
     glm::vec3 cubeColor(0.0f, 1.0f, 0.0f);
     float cubeRotate = 0.0f;
     float cubeRotateX , cubeRotateY , cubeRotateZ;
@@ -287,7 +284,6 @@ int main()
         ImGui::NewFrame();
             
 
-        //cube
         LightingShader.use();
 
 
@@ -324,9 +320,7 @@ int main()
         int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
         glUniform1f(_cubeSpecVal, specValue);
 
-        //Time uniform
-        float _time = glGetUniformLocation(LightingShader.ID, "time");
-        glUniform1f(_time, currentFrame);
+
 
         //For ImGui Menu
         if(rotateX){
@@ -348,7 +342,7 @@ int main()
             cubeRotateZ = 0.0f;
         };
 
-        //FLOOR PLANE
+                //FLOOR PLANE
         glm::mat4 planeModel = glm::mat4(1.0f);
         planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -359,6 +353,12 @@ int main()
         planeView = camera.GetViewMatrix();
 
 
+        //Time uniform
+        float _time = glGetUniformLocation(LightingShader.ID, "time");
+        glUniform1f(_time, currentFrame);
+
+
+        //For Lighitng Shader
         int planeMLoc = glGetUniformLocation(LightingShader.ID, "model");
         int planePLoc = glGetUniformLocation(LightingShader.ID, "proj");
         int planeVLoc = glGetUniformLocation(LightingShader.ID, "view");
@@ -366,33 +366,40 @@ int main()
         glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
         glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
         glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
-        
+
+
 
         glBindVertexArray(pVAO);
         
 
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 50; i++){
             glm::mat4 planeModel = glm::mat4(1.0f);
             planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f));
-           
-            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
+            planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
+            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f) + planePosition);
 
+           
+           
+            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));            
 
             glDrawArrays(GL_TRIANGLES, 0, 6); 
             
-            for(int j = 0; j < 10; j++){
+            for(int j = 0; j < 50; j++){
                 glm::mat4 planeModel = glm::mat4(1.0f);
                 planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f));
+                planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
+                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f) + planePosition);
            
+               
                 glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
-
 
                 glDrawArrays(GL_TRIANGLES, 0, 6); 
             };
         
         };
+
+        
+
 
 
 
@@ -479,6 +486,10 @@ int main()
             };
 
         };
+        if(ImGui::CollapsingHeader("Plane Options")){
+            ImGui::SliderFloat3("Plane Position", &planePosition.x, -50.0f, 50.0f);
+        };
+
         ImGui::End();
 
         ImGui::Begin("Stats");
@@ -629,7 +640,8 @@ float *CalculateNormals(float vertices[], int arraySize){
             if(swap == 12){
                 swap = 0;
             };
-        }
+        } 
+
         crossIndex += 9;
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;

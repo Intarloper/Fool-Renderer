@@ -14,14 +14,24 @@ out vec3 normal;
 out vec3 FragPos;
 void main()
 {	
-	normal = mat3(transpose(inverse(model))) * aNorm;	
-
+        float e = 2.718281828459;
 	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
-	
-	float displace = sin(length(modelPos.xz) * 10.0 - time) * 0.5;
-	
-	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z + displace, 1.0);
+	float displace = 0.0;
 
+	for(int i = 1; i < 3; i++){
+		float zWave = i * pow(e, sin((length(modelPos.z) / i) * 10 - time ) - 1 ) * .5;
+		float xWave =  pow(e, sin((length(modelPos.x) / i) * 5 - time ) - 1 ) * .5;
+
+		
+		displace = displace + zWave + xWave;
+	};
+	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
+
+
+
+
+	normal = mat3(transpose(inverse(model))) * aNorm;	
+	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z + displace, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
 	//normal = aNorm;
 };	
