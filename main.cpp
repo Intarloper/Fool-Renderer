@@ -248,6 +248,8 @@ int main()
 	
 	//Plane variables
 	glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
+	int planeXAmount, planeYAmount;
+	
 
 	//Shader Specfic Variables
     float ambientIntensity = 0.35f;
@@ -375,7 +377,7 @@ int main()
         glBindVertexArray(pVAO);
         
 		//First for loop draws X axis array of planes
-        for(int i = 0; i < 50; i++){
+        for(int i = 0; i < planeXAmount; i++){
             glm::mat4 planeModel = glm::mat4(1.0f);
             planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
@@ -387,7 +389,7 @@ int main()
 
             glDrawArrays(GL_TRIANGLES, 0, 6); 
             //Nested for loop draws Y axis array of planes as well as fills in the area to create one large plane
-            for(int j = 0; j < 50; j++){
+            for(int j = 0; j < planeYAmount; j++){
                 glm::mat4 planeModel = glm::mat4(1.0f);
                 planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                 planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
@@ -491,6 +493,8 @@ int main()
         };
         if(ImGui::CollapsingHeader("Plane Options")){
             ImGui::SliderFloat3("Plane Position", &planePosition.x, -50.0f, 50.0f);
+			ImGui::SliderInt("Plane X Amount", &planeXAmount, 0, 200);
+			ImGui::SliderInt("Plane Y Amount", &planeYAmount, 0, 200);
         };
 
         ImGui::End();

@@ -19,15 +19,14 @@ void main()
 	float displace = 0.0;
 
 	for(int i = 1; i < 5; i++){
-		float zWave = i * pow(e, sin((length(modelPos.z) / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(modelPos.x) + cos(i * modelPos.x));
-		float xWave =  pow(e, sin((length(modelPos.x) / i) * 10 - time ) - 1 ) * .5;
-
+		float zWave =  i * pow(e, sin((modelPos.z / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x) );
+		float xWave =  i * pow(e, sin((modelPos.x / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z) );
 		
-		displace = displace + zWave + xWave;
+		displace = displace + (zWave + xWave);
 	};
 	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
 
-
+ 
 
 
 	normal = mat3(transpose(inverse(model))) * aNorm;	
