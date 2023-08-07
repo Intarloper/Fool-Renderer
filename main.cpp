@@ -233,27 +233,30 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     
-    //declare these out of loop so they can be changed by imGui
-    //
-    //Uniforms for lighting shader
+	//declare these out of loop so they can be changed by imGui
+	
+	//Light Variables
     glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 1.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
+	//Cube Variables
     glm::vec3 cubePosition(0.0f, 0.5f, 0.0f);
-    glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
     glm::vec3 cubeColor(0.0f, 1.0f, 0.0f);
     float cubeRotate = 0.0f;
     float cubeRotateX , cubeRotateY , cubeRotateZ;
     bool rotateX = false, rotateY = false, rotateZ = false;
+	
+	//Plane variables
+	glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
 
+	//Shader Specfic Variables
     float ambientIntensity = 0.35f;
     float specValue = 32.0f;
 
     bool lightType = false;
     bool useBlinn = false;
-    //Uniforms for lighting shader
-    //
-    bool polygonMode;
+	
+	bool polygonMode;
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -371,7 +374,7 @@ int main()
 
         glBindVertexArray(pVAO);
         
-
+		//First for loop draws X axis array of planes
         for(int i = 0; i < 50; i++){
             glm::mat4 planeModel = glm::mat4(1.0f);
             planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -383,7 +386,7 @@ int main()
             glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));            
 
             glDrawArrays(GL_TRIANGLES, 0, 6); 
-            
+            //Nested for loop draws Y axis array of planes as well as fills in the area to create one large plane
             for(int j = 0; j < 50; j++){
                 glm::mat4 planeModel = glm::mat4(1.0f);
                 planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -450,7 +453,7 @@ int main()
 
 
 
-        //imGui menu 
+        //imGui Interactive menu 
         ImGui::Begin("Options Menu");
         ImGui::BulletText("Press Tab to use menu");
         ImGui::BulletText("Press Tilde to exit options");
@@ -491,11 +494,11 @@ int main()
         };
 
         ImGui::End();
-
+		//ImGui Interative Menu
+		
+		//ImGui FPS Menu ; Displays FPS too quickly, fix to update value every half second or so
         ImGui::Begin("Stats");
-
         ImGui::Text(" deltaTime = %f", 1 / deltaTime);
-
         ImGui::End();
 
         ImGui::Render();
@@ -603,6 +606,8 @@ float *CalculateNormals(float vertices[], int arraySize){
     int resultIndex = 0;
     int crossIndex = 0;
     int swap = 0;
+	
+	//First for loop we iterate through the vertex array and stash 9 variables at a time, placing those values into 3 seperate vec3's
     for(int i = 0; i < arrayLength; i += 9){
         
         glm::vec3 vecA = glm::vec3(vertices[crossIndex], vertices[crossIndex + 1], vertices[crossIndex + 2]);
@@ -611,6 +616,8 @@ float *CalculateNormals(float vertices[], int arraySize){
         
         print << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
 
+
+		//Calculate 2 Edges by subtracting 2 sets of 2 vertcies
         glm::vec3 edgeAB = vecB - vecA;
         glm::vec3 edgeAC = vecC - vecA;
 
@@ -643,6 +650,9 @@ float *CalculateNormals(float vertices[], int arraySize){
         } 
 
         crossIndex += 9;
+		
+		//Nested for loop takes the 3 results and propogates them across 3 sets of 3 varibles in a new results array 
+			//This should give us a face normal
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;
             result[resultIndex + 1] = crossResult.y;
@@ -666,6 +676,9 @@ float *CalculateNormals(float vertices[], int arraySize){
     print << sizeof(result) << std::endl;
     return result;
 };
+
+
+
 
 
 void GLSetup(){

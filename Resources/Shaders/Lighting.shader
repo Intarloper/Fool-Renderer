@@ -18,9 +18,9 @@ void main()
 	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
 	float displace = 0.0;
 
-	for(int i = 1; i < 3; i++){
-		float zWave = i * pow(e, sin((length(modelPos.z) / i) * 10 - time ) - 1 ) * .5;
-		float xWave =  pow(e, sin((length(modelPos.x) / i) * 5 - time ) - 1 ) * .5;
+	for(int i = 1; i < 5; i++){
+		float zWave = i * pow(e, sin((length(modelPos.z) / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(modelPos.x) + cos(i * modelPos.x));
+		float xWave =  pow(e, sin((length(modelPos.x) / i) * 10 - time ) - 1 ) * .5;
 
 		
 		displace = displace + zWave + xWave;
