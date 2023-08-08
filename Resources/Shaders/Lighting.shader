@@ -12,17 +12,22 @@ uniform float time;
 
 out vec3 normal;
 out vec3 FragPos;
+
+
+
 void main()
 {	
         float e = 2.718281828459;
+	
 	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
 	float displace = 0.0;
 
 	for(int i = 1; i < 5; i++){
-		float zWave =  i * pow(e, sin((modelPos.z / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x) );
-		float xWave =  i * pow(e, sin((modelPos.x / i) * 10 - time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z) );
+		float zWave =  pow(e, i * sin((modelPos.z - modelPos.x) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x) );
+		float xWave =  pow(e, i * sin((modelPos.x - modelPos.z) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z) );
+		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.y) );
 		
-		displace = displace + (zWave + xWave);
+		displace = displace + .2 * (zWave + xWave + (.5 * yWave));
 	};
 	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
 
