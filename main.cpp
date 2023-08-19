@@ -20,6 +20,9 @@
 #include "Libraries/IMGUI/imgui_impl_opengl3.h"
 #include "Libraries/IMGUI/imgui_impl_glfw.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include <gl/gl.h>
 #include <iterator>
