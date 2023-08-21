@@ -23,11 +23,11 @@ void main()
 	float displace = 0.0;
 
 	for(int i = 1; i < 5; i++){
-		float zWave =  pow(e, i * sin((modelPos.z - modelPos.x) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x) );
-		float xWave =  pow(e, i * sin((modelPos.x - modelPos.z) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z) );
-		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.y) );
+		float zWave =  pow(e, i * sin((modelPos.z - modelPos.x) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x));
+		float xWave =  pow(e, i * sin((modelPos.x - modelPos.z) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z));
+		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + (time * 2) ) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
 		
-		displace = displace + .2 * (zWave + xWave + (.5 * yWave));
+		displace = displace + .2 * ((zWave - xWave) + (.5 * yWave));
 	};
 	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
 

@@ -1,9 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "../GLAD/glad/glad.h"
-#include "../GLM/glm.hpp"
-#include "../GLM/gtc/matrix_transform.hpp"
+#include <GLAD/glad.h>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include <vector>
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods

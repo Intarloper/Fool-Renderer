@@ -1,30 +1,24 @@
-#include "Libraries/GLM/ext/matrix_clip_space.hpp"
-#include "Libraries/GLM/ext/matrix_transform.hpp"
-#include "Libraries/GLM/ext/quaternion_geometric.hpp"
-#include "Libraries/GLM/ext/vector_float3.hpp"
-#include "Libraries/GLM/geometric.hpp"
-
 #include "Libraries/PL/ClassShader.h"
 #include "Libraries/PL/ClassCamera.h"
 
-#include "Libraries/GLAD/glad/KHR/khrplatform.h"
-#include "Libraries/GLAD/glad/glad.h"
+#include <GLFW/glfw3.h>
+#include <GLAD/glad.h>
 
-#include "Libraries/GLFW/include/GLFW/glfw3.h"
-#include "Libraries/GLM/glm.hpp"
-#include "Libraries/GLM/gtc/matrix_transform.hpp"
-#include "Libraries/GLM/gtc/type_ptr.hpp"
-#include "Libraries/GLM/gtx/string_cast.hpp"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#include <gtx/string_cast.hpp>
+
 
 #include "Libraries/IMGUI/imgui.h"
 #include "Libraries/IMGUI/imgui_impl_opengl3.h"
 #include "Libraries/IMGUI/imgui_impl_glfw.h"
 
-#include <assimp/Importer.hpp>
+/*#include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include <gl/gl.h>
+*/
+#include <gl/GL.h>
 #include <iterator>
 #include <stdlib.h>
 #include <iostream>
@@ -93,12 +87,12 @@ int main()
     ImGuiSetup(window);
 
     // build and compile our shader program
-    Shader waveShader("Resources/Shaders/Wave.shader");
-    Shader LightingShader("Resources/Shaders/Lighting.shader");
+    Shader LightingShader("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
+    Shader BackpackShader("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Backpack.Shader");
+    ShaderProgramSource backpackSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Backpack.Shader");
+    ShaderProgramSource lightingSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
 
-    ShaderProgramSource waveSource = Parse("Resources/Shaders/Wave.shader");    
-    ShaderProgramSource lightingSource = Parse("Resources/Shaders/Lighting.shader");
-
+  
     float verticesP[] = {
         -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
@@ -251,7 +245,7 @@ int main()
 	
 	//Plane variables
 	glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
-	int planeXAmount, planeYAmount;
+	int planeXAmount = 0, planeYAmount = 0;
 	
 
 	//Shader Specfic Variables
@@ -261,7 +255,7 @@ int main()
     bool lightType = false;
     bool useBlinn = false;
 	
-	bool polygonMode;
+	bool polygonMode = false;
 
     // render loop
     while (!glfwWindowShouldClose(window))
