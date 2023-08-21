@@ -3,12 +3,13 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNorm;
+layout (location = 2) in vec2 aTexCoords;
+
+out vec2 TexCoords;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
-
-uniform float time;
 
 out vec3 normal;
 out vec3 FragPos;
@@ -17,10 +18,9 @@ out vec3 FragPos;
 
 void main()
 {	
-	normal = mat3(transpose(inverse(model))) * aNorm;	
+	TexCoords = aTexCoords;
 	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
-	normal = aNorm;
 };	
 
 #shader fragment
@@ -29,6 +29,7 @@ void main()
 
 in vec3 normal;
 in vec3 FragPos;
+in vec2 TexCoords;
 
 out vec4 FragColor;
 
@@ -54,6 +55,8 @@ uniform PointLight light;
 
 uniform bool lightType;
 uniform bool useBlinn;
+
+uniform sampler2D texture_diffuse1;
 
 void main()
 {
@@ -99,5 +102,6 @@ void main()
 	vec3 result = (ambientResult + diffuse + specular) * objectColor;
 	
 	//FragColor = vec4(result, 1.0f);
-	FragColor = vec4(result, 1.0f);
+	//FragColor = vec4(result, 1.0f);
+	FragColor = texture(texture_diffuse1, TexCoords) * vec4(result, 1.0);
 };
