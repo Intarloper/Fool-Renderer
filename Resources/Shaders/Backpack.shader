@@ -3,12 +3,13 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNorm;
+layout (location = 2) in vec2 aTexCoords;
+
+out vec2 TexCoords;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
-
-uniform float time;
 
 out vec3 normal;
 out vec3 FragPos;
@@ -17,27 +18,9 @@ out vec3 FragPos;
 
 void main()
 {	
-        float e = 2.718281828459;
-	
-	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
-	float displace = 0.0;
-
-	for(int i = 1; i < 5; i++){
-		float zWave =  pow(e, i * sin((modelPos.z - modelPos.x) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x));
-		float xWave =  pow(e, i * sin((modelPos.x - modelPos.z) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z));
-		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + (time * 2) ) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
-		
-		displace = displace + .2 * ((zWave - xWave) + (.5 * yWave));
-	};
-	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
-
- 
-
-
-	normal = mat3(transpose(inverse(model))) * aNorm;	
-	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z + displace, 1.0);
+	TexCoords = aTexCoords;
+	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
-	//normal = aNorm;
 };	
 
 #shader fragment
@@ -46,6 +29,7 @@ void main()
 
 in vec3 normal;
 in vec3 FragPos;
+in vec2 TexCoords;
 
 out vec4 FragColor;
 
@@ -71,6 +55,8 @@ uniform PointLight light;
 
 uniform bool lightType;
 uniform bool useBlinn;
+
+uniform sampler2D texture_diffuse1;
 
 void main()
 {
@@ -116,6 +102,6 @@ void main()
 	vec3 result = (ambientResult + diffuse + specular) * objectColor;
 	
 	//FragColor = vec4(result, 1.0f);
-	FragColor = vec4(result, 1.0f);
+	//FragColor = vec4(result, 1.0f);
+	FragColor = texture(texture_diffuse1, TexCoords) * vec4(result, 1.0);
 };
-

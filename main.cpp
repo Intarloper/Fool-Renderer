@@ -1,27 +1,25 @@
-#include "Libraries/GLM/ext/matrix_clip_space.hpp"
-#include "Libraries/GLM/ext/matrix_transform.hpp"
-#include "Libraries/GLM/ext/quaternion_geometric.hpp"
-#include "Libraries/GLM/ext/vector_float3.hpp"
-#include "Libraries/GLM/geometric.hpp"
-
 #include "Libraries/PL/ClassShader.h"
 #include "Libraries/PL/ClassCamera.h"
+#include "Libraries/PL/Model.h"
 
-#include "Libraries/GLAD/glad/KHR/khrplatform.h"
-#include "Libraries/GLAD/glad/glad.h"
+#include <GLFW/glfw3.h>
+#include <GLAD/glad.h>
 
-#include "Libraries/GLFW/include/GLFW/glfw3.h"
-#include "Libraries/GLM/glm.hpp"
-#include "Libraries/GLM/gtc/matrix_transform.hpp"
-#include "Libraries/GLM/gtc/type_ptr.hpp"
-#include "Libraries/GLM/gtx/string_cast.hpp"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#include <gtx/string_cast.hpp>
+
 
 #include "Libraries/IMGUI/imgui.h"
 #include "Libraries/IMGUI/imgui_impl_opengl3.h"
 #include "Libraries/IMGUI/imgui_impl_glfw.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
-#include <gl/gl.h>
+#include <gl/GL.h>
 #include <iterator>
 #include <stdlib.h>
 #include <iostream>
@@ -69,7 +67,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Tuul Renderer", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -89,60 +87,17 @@ int main()
     //IMGUI setup
     ImGuiSetup(window);
 
+    stbi_set_flip_vertically_on_load(true);
+
     // build and compile our shader program
-    Shader ourShader("Resources/Shaders/Shader.shader");
-    Shader planeShader("Resources/Shaders/floor.shader");
-    Shader LightingShader("Resources/Shaders/Lighting.shader");
+    Shader LightingShader("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
+    Shader BackpackShader("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Backpack.Shader");
+    ShaderProgramSource backpackSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Backpack.Shader");
+    ShaderProgramSource lightingSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
 
-    ShaderProgramSource source = Parse("Resources/Shaders/Shader.shader");
-    
-    ShaderProgramSource planeSource = Parse("Resources/Shaders/floor.shader");
-    
-    ShaderProgramSource lightingSource = Parse("Resources/Shaders/Lighting.shader");
+    Model backpackModel("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Models/backpack/Backpack.obj");
 
-    float verticesP[] = {
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f, 
-        0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
 
-        -0.5f, -0.5f,  0.5f,
-        0.5f, -0.5f,  0.5f,  
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,  
-
-        -0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,  
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f, 
-        0.5f, -0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-
-        -0.5f, -0.5f, -0.5f,  
-        0.5f, -0.5f, -0.5f,  
-        0.5f, -0.5f,  0.5f,  
-        0.5f, -0.5f,  0.5f, 
-        -0.5f, -0.5f,  0.5f,  
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,  
-        0.5f,  0.5f,  0.5f, 
-        0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f
-}; 
 
     float planeVertices[]{
         0.5f, 0.5f, 0.0f,
@@ -160,50 +115,6 @@ int main()
         glm::vec3(0.0, 0.0, 5.0)
     };
 
-   /* unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
-    }; */
-    
-
-//Uncolored cube
-    
-    unsigned int cVBO, cVAO;
-
-    glGenVertexArrays(1, &cVAO);
-    glBindVertexArray(cVAO);
-    
-
-    glGenBuffers(1, &cVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, cVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesP), verticesP, GL_DYNAMIC_DRAW);  
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3,GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-    
-
-    //normals
-    int arrayLength = *(&verticesP + 1) - verticesP;
-    unsigned int normCVBO;
-    float normArr[108] = {};
-    
-    float* result = CalculateNormals(verticesP, arrayLength);
-
-    for(int i = 0; i < arrayLength; i++){
-        normArr[i] = result[i];
-    };
-    for(int j = 0; j < arrayLength; j += 3){
-        print << normArr[j] << " " << normArr[j + 1] << " " << normArr[j + 2] << std::endl;
-    };
-
-
-    glGenBuffers(1, &normCVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, normCVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normArr), normArr, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3 ,GL_FLOAT, GL_FALSE, 0, (void*)0);
-    
-    glBindVertexArray(0);
  
 //PLANE
     
@@ -237,26 +148,25 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     
-    //declare these out of loop so they can be changed by imGui
-    //
-    //Uniforms for lighting shader
+	//declare these out of loop so they can be changed by imGui
+	
+	//Light Variables
     glm::vec3 lightPos = glm::vec3(0.0f, 1.0f, 1.0f);
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    glm::vec3 cubePosition(0.0f, 0.5f, 0.0f);
-    glm::vec3 cubeColor(0.0f, 1.0f, 0.0f);
-    float cubeRotate = 0.0f;
-    float cubeRotateX , cubeRotateY , cubeRotateZ;
-    bool rotateX = false, rotateY = false, rotateZ = false;
-
+	
+	//Plane variables
+	glm::vec3 planePosition(0.0f, 0.0f, 0.0f);
+	int planeXAmount = 0, planeYAmount = 0;
+	
+	//Shader Specfic Variables
+    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
     float ambientIntensity = 0.35f;
     float specValue = 32.0f;
 
     bool lightType = false;
     bool useBlinn = false;
-    //Uniforms for lighting shader
-    //
-    bool polygonMode;
+	
+	bool polygonMode = false;
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -287,8 +197,7 @@ int main()
         ImGui::NewFrame();
             
 
-        //cube
-        LightingShader.use();
+        /*LightingShader.use();
 
 
         //Light Uniforms
@@ -316,37 +225,16 @@ int main()
         int _useBlinn = glGetUniformLocation(LightingShader.ID, "useBlinn");
         glUniform1i(_useBlinn, useBlinn);
 
-        //cube uniforms
+        //lighting uniforms
         int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
-        glUniform3fv(_cubeColor, 1, glm::value_ptr(cubeColor));
+        glUniform3fv(_cubeColor, 1, glm::value_ptr(color));
         int _cubeAmbInt = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
         glUniform1f(_cubeAmbInt, ambientIntensity);
         int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
         glUniform1f(_cubeSpecVal, specValue);
 
-        //Time uniform
-        float _time = glGetUniformLocation(LightingShader.ID, "time");
-        glUniform1f(_time, currentFrame);
 
-        //For ImGui Menu
-        if(rotateX){
-            cubeRotateX = 1.0f;
-        }
-        else{
-            cubeRotateX = 0.0f;
-        };
-        if(rotateY){
-            cubeRotateY = 1.0f;
-        }
-        else{
-            cubeRotateY = 0.0f;
-        };
-        if(rotateZ){
-            cubeRotateZ = 1.0f;
-        }
-        else{
-            cubeRotateZ = 0.0f;
-        };
+
 
         //FLOOR PLANE
         glm::mat4 planeModel = glm::mat4(1.0f);
@@ -359,6 +247,12 @@ int main()
         planeView = camera.GetViewMatrix();
 
 
+        //Time uniform
+        float _time = glGetUniformLocation(LightingShader.ID, "time");
+        glUniform1f(_time, currentFrame);
+
+
+        //For Lighitng Shader
         int planeMLoc = glGetUniformLocation(LightingShader.ID, "model");
         int planePLoc = glGetUniformLocation(LightingShader.ID, "proj");
         int planeVLoc = glGetUniformLocation(LightingShader.ID, "view");
@@ -366,84 +260,96 @@ int main()
         glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
         glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
         glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
-        
+
+
 
         glBindVertexArray(pVAO);
         
-
-        for(int i = 0; i < 10; i++){
+		//First for loop draws X axis array of planes
+        for(int i = 0; i < planeXAmount; i++){
             glm::mat4 planeModel = glm::mat4(1.0f);
             planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f));
-           
-            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
+            planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
+            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f) + planePosition);
 
+           
+           
+            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));            
 
             glDrawArrays(GL_TRIANGLES, 0, 6); 
-            
-            for(int j = 0; j < 10; j++){
+            //Nested for loop draws Y axis array of planes as well as fills in the area to create one large plane
+            for(int j = 0; j < planeYAmount; j++){
                 glm::mat4 planeModel = glm::mat4(1.0f);
                 planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f));
+                planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
+                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f) + planePosition);
            
+               
                 glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
-
 
                 glDrawArrays(GL_TRIANGLES, 0, 6); 
             };
         
         };
+        */
+
+        //BACKPACK
+        BackpackShader.use();
+        //Light Uniforms
+        int _lightCol = glGetUniformLocation(LightingShader.ID, "lightColor");
+        glUniform3fv(_lightCol, 1, glm::value_ptr(lightColor));
+
+        int _lightPos = glGetUniformLocation(LightingShader.ID, "lightPos");
+        glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
+
+        int _lightPosition = glGetUniformLocation(LightingShader.ID, "light.position");
+        glUniform3fv(_lightPosition, 1, glm::value_ptr(lightPos));
+
+        int _lightLinear = glGetUniformLocation(LightingShader.ID, "light.linear");
+        glUniform1f(_lightLinear, .09f);
+
+        int _lightQuadratic = glGetUniformLocation(LightingShader.ID, "light.quadratic");
+        glUniform1f(_lightQuadratic, .032f);
+
+        int _lightConstant = glGetUniformLocation(LightingShader.ID, "light.constant");
+        glUniform1f(_lightConstant, 1.0f);
+
+        int _lightType = glGetUniformLocation(LightingShader.ID, "lightType");
+        glUniform1i(_lightType, lightType);
+
+        int _useBlinn = glGetUniformLocation(LightingShader.ID, "useBlinn");
+        glUniform1i(_useBlinn, useBlinn);
+
+        //lighting uniforms
+        int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
+        glUniform3fv(_cubeColor, 1, glm::value_ptr(color));
+        int _cubeAmbInt = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
+        glUniform1f(_cubeAmbInt, ambientIntensity);
+        int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
+        glUniform1f(_cubeSpecVal, specValue);
 
 
 
 
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
+        glm::mat4 bModel = glm::mat4(1.0f);
+ 
+        glm::mat4 bProjection = glm::mat4(1.0f);
+        bProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        //CUBES
-        glm::mat4 cModel = glm::mat4(1.0f);
-        cModel = glm::translate(cModel, cubePosition);
-        cModel = glm::rotate(cModel,  glm::radians(cubeRotate) , glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
+        glm::mat4 bView = glm::mat4(1.0f);
+        bView = camera.GetViewMatrix();
 
-        glm::mat4 cProjection = glm::mat4(1.0f);
-        cProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        int bmodelLoc = glGetUniformLocation(BackpackShader.ID, "model");
+        int bprojLoc = glGetUniformLocation(BackpackShader.ID, "proj");
+        int bviewLoc = glGetUniformLocation(BackpackShader.ID, "view");
+        glUniformMatrix4fv(bmodelLoc, 1, GL_FALSE, glm::value_ptr(bModel));
+        glUniformMatrix4fv(bprojLoc, 1, GL_FALSE, glm::value_ptr(bProjection));
+        glUniformMatrix4fv(bviewLoc, 1, GL_FALSE, glm::value_ptr(bView));
 
-        glm::mat4 cView = glm::mat4(1.0f);
-        cView = camera.GetViewMatrix();
-
-        int cmodelLoc = glGetUniformLocation(LightingShader.ID, "model");
-        int cprojLoc = glGetUniformLocation(LightingShader.ID, "proj");
-        int cviewLoc = glGetUniformLocation(LightingShader.ID, "view");
-        glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(cModel)); 
-        glUniformMatrix4fv(cprojLoc, 1, GL_FALSE, glm::value_ptr(cProjection)); 
-        glUniformMatrix4fv(cviewLoc, 1, GL_FALSE, glm::value_ptr(cView));
-
-        int viewPosLoc = glGetUniformLocation(LightingShader.ID, "viewPos");
-        glUniform3fv(viewPosLoc,1, glm::value_ptr(camera.Position));
-        
-        glBindVertexArray(cVAO);
-        for(int i = 0; i < 3; i++){
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, postions[i] + cubePosition);
-            model = glm::rotate(model,  glm::radians(cubeRotate) , glm::vec3(cubeRotateX, cubeRotateY, cubeRotateZ));
-
-            glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        };
-        for(int j = 0; j < 1; j++){
-            glm::mat4 lightModel = glm::mat4(1.0f);
-            lightModel = glm::translate(lightModel, lightPos);
-            lightModel = glm::scale(lightModel, glm::vec3(0.25f, 0.25f, 0.25f));
-
-            glUniformMatrix4fv(cmodelLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
-
-            glDrawArrays(GL_TRIANGLES, 0 , 36);
-        };
+        backpackModel.Draw(BackpackShader);
 
 
-
-
-        //imGui menu 
+        //imGui Interactive menu 
         ImGui::Begin("Options Menu");
         ImGui::BulletText("Press Tab to use menu");
         ImGui::BulletText("Press Tilde to exit options");
@@ -463,28 +369,18 @@ int main()
         if(ImGui::CollapsingHeader("Draw Options")){
                 ImGui::Checkbox("Wireframe", &polygonMode);
         };
-        if(ImGui::CollapsingHeader("Cube Options")){
-            ImGui::SliderFloat3("Cube Position", &cubePosition.x, -50.0f, 50.0f);
-            ImGui::SliderFloat("CubeRotation", &cubeRotate, 0.0f, 360.0f);
-            if(ImGui::BeginTable("Rotation Axis", 3)){
-                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate X", &rotateX);
-                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate Y", &rotateY);
-                ImGui::TableNextColumn();  ImGui::Checkbox("Rotate Z", &rotateZ);
-                ImGui::EndTable();
-            };
-            if(ImGui::CollapsingHeader("Cube Shader Options")){
-                ImGui::ColorEdit3("Cube Color", &cubeColor.x);
-                ImGui::SliderFloat("Cube Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
-                ImGui::SliderFloat("Cube Specular Value", &specValue, 0.0f, 256.0f);
-            };
-
+        if(ImGui::CollapsingHeader("Plane Options")){
+            ImGui::SliderFloat3("Plane Position", &planePosition.x, -50.0f, 50.0f);
+			ImGui::SliderInt("Plane X Amount", &planeXAmount, 0, 200);
+			ImGui::SliderInt("Plane Y Amount", &planeYAmount, 0, 200);
         };
+
         ImGui::End();
-
+		//ImGui Interative Menu
+		
+		//ImGui FPS Menu ; Displays FPS too quickly, fix to update value every half second or so
         ImGui::Begin("Stats");
-
         ImGui::Text(" deltaTime = %f", 1 / deltaTime);
-
         ImGui::End();
 
         ImGui::Render();
@@ -592,6 +488,8 @@ float *CalculateNormals(float vertices[], int arraySize){
     int resultIndex = 0;
     int crossIndex = 0;
     int swap = 0;
+	
+	//First for loop we iterate through the vertex array and stash 9 variables at a time, placing those values into 3 seperate vec3's
     for(int i = 0; i < arrayLength; i += 9){
         
         glm::vec3 vecA = glm::vec3(vertices[crossIndex], vertices[crossIndex + 1], vertices[crossIndex + 2]);
@@ -600,6 +498,8 @@ float *CalculateNormals(float vertices[], int arraySize){
         
         print << glm::to_string(vecA) << " " << glm::to_string(vecB) << " " << glm::to_string(vecC) << std::endl;
 
+
+		//Calculate 2 Edges by subtracting 2 sets of 2 vertcies
         glm::vec3 edgeAB = vecB - vecA;
         glm::vec3 edgeAC = vecC - vecA;
 
@@ -629,8 +529,12 @@ float *CalculateNormals(float vertices[], int arraySize){
             if(swap == 12){
                 swap = 0;
             };
-        }
+        } 
+
         crossIndex += 9;
+		
+		//Nested for loop takes the 3 results and propogates them across 3 sets of 3 varibles in a new results array 
+			//This should give us a face normal
         for(int j = 0; j < 9; j += 9){
             result[resultIndex] = crossResult.x;
             result[resultIndex + 1] = crossResult.y;
@@ -654,6 +558,9 @@ float *CalculateNormals(float vertices[], int arraySize){
     print << sizeof(result) << std::endl;
     return result;
 };
+
+
+
 
 
 void GLSetup(){
