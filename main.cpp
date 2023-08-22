@@ -95,8 +95,8 @@ int main()
     ShaderProgramSource backpackSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Backpack.Shader");
     ShaderProgramSource lightingSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
 
-    Model backpackModel("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Models/backpack/Backpack.obj");
-    Model highResPlaneModel("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Models/Plane/HighResPlane.obj");
+    Model backpackModel("../../Resources/Models/backpack/Backpack.obj");
+    Model highResPlaneModel("../../Resources/Models/Plane/HighResPlane.obj");
 
 
     float planeVertices[]{
@@ -197,101 +197,7 @@ int main()
         ImGui::NewFrame();
             
 
-        /*LightingShader.use();
-
-
-        //Light Uniforms
-        int _lightCol = glGetUniformLocation(LightingShader.ID, "lightColor");
-        glUniform3fv(_lightCol, 1, glm::value_ptr(lightColor));
-
-        int _lightPos = glGetUniformLocation(LightingShader.ID, "lightPos");
-        glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
-
-        int _lightPosition = glGetUniformLocation(LightingShader.ID, "light.position");
-        glUniform3fv(_lightPosition, 1, glm::value_ptr(lightPos));
-
-        int _lightLinear = glGetUniformLocation(LightingShader.ID, "light.linear");
-        glUniform1f(_lightLinear, .09f);
-
-        int _lightQuadratic = glGetUniformLocation(LightingShader.ID, "light.quadratic");
-        glUniform1f(_lightQuadratic, .032f);
-
-        int _lightConstant = glGetUniformLocation(LightingShader.ID, "light.constant");
-        glUniform1f(_lightConstant, 1.0f);
-
-        int _lightType = glGetUniformLocation(LightingShader.ID, "lightType");
-        glUniform1i(_lightType, lightType);
-
-        int _useBlinn = glGetUniformLocation(LightingShader.ID, "useBlinn");
-        glUniform1i(_useBlinn, useBlinn);
-
-        //lighting uniforms
-        int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
-        glUniform3fv(_cubeColor, 1, glm::value_ptr(color));
-        int _cubeAmbInt = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
-        glUniform1f(_cubeAmbInt, ambientIntensity);
-        int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
-        glUniform1f(_cubeSpecVal, specValue);
-
-
-
-
-        //FLOOR PLANE
-        glm::mat4 planeModel = glm::mat4(1.0f);
-        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-        glm::mat4 planeProj = glm::mat4(1.0f);
-        planeProj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-
-        glm::mat4 planeView = glm::mat4(1.0f);
-        planeView = camera.GetViewMatrix();
-
-
-        //Time uniform
-        float _time = glGetUniformLocation(LightingShader.ID, "time");
-        glUniform1f(_time, currentFrame);
-
-
-        //For Lighitng Shader
-        int planeMLoc = glGetUniformLocation(LightingShader.ID, "model");
-        int planePLoc = glGetUniformLocation(LightingShader.ID, "proj");
-        int planeVLoc = glGetUniformLocation(LightingShader.ID, "view");
-
-        glUniformMatrix4fv(planeMLoc, 1 , GL_FALSE, glm::value_ptr(planeModel));
-        glUniformMatrix4fv(planePLoc, 1 , GL_FALSE, glm::value_ptr(planeProj));
-        glUniformMatrix4fv(planeVLoc, 1 , GL_FALSE, glm::value_ptr(planeView));
-
-
-
-        glBindVertexArray(pVAO);
         
-		//First for loop draws X axis array of planes
-        for(int i = 0; i < planeXAmount; i++){
-            glm::mat4 planeModel = glm::mat4(1.0f);
-            planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
-            planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), 0.0f, 0.0f) + planePosition);
-
-           
-           
-            glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));            
-
-            glDrawArrays(GL_TRIANGLES, 0, 6); 
-            //Nested for loop draws Y axis array of planes as well as fills in the area to create one large plane
-            for(int j = 0; j < planeYAmount; j++){
-                glm::mat4 planeModel = glm::mat4(1.0f);
-                planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                planeModel = glm::scale(planeModel, glm::vec3(0.1f, 0.1f, 0.1f));
-                planeModel = glm::translate(planeModel, glm::vec3(static_cast<float>(i), static_cast<float>(j), 0.0f) + planePosition);
-           
-               
-                glUniformMatrix4fv(planeMLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
-
-                glDrawArrays(GL_TRIANGLES, 0, 6); 
-            };
-        
-        };
-        */
 
         //BACKPACK
         BackpackShader.use();

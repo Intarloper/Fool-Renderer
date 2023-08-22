@@ -13,28 +13,44 @@ uniform float time;
 out vec3 normal;
 out vec3 FragPos;
 
+float CalculateWaveDisplacement(vec4 modelPos){
+	const float e = 2.718281828459;
+	
+	
+	float displace = 0.0;
+	float diagonalWaveAmp = .1;
+	float xyWaveAmp = .01;
+	float diagonalResult;
+	float xyWaveResult;
 
+	for(int i = 1; i < 4; i++){
+		float yWave =  pow(e, (i * .3) * sin(((modelPos.y - modelPos.x) * i) + time));
+		float xWave =  pow(e, (i * .5) * sin(((modelPos.x - modelPos.y) * i) + time * (i * .2)));
+		float zWave =  pow(e, (i * .2) * sin((((modelPos.z - modelPos.y) * i) + ((modelPos.x - modelPos.y) * i)) + time * (i * .3)));
+		
+		yWave += (i - 1) * (pow(e, (i * .3) * sin(((modelPos.y - modelPos.x) * i) + time)) * ((i * .3) * cos((modelPos.y - modelPos.x) * i)));
+		xWave += (i - 1) * (pow(e, (i * .5) * sin(((modelPos.x - modelPos.y) * i) + time)) * ((i * .5) * cos((modelPos.x - modelPos.y) * i)));
+		
+		diagonalResult = diagonalWaveAmp * zWave;
+		xyWaveResult = xyWaveAmp * (yWave + xWave);
+
+		displace = displace + xyWaveResult + diagonalResult;
+	};
+	return displace;
+};
 
 void main()
 {	
-        float e = 2.718281828459;
+
+	vec4 modelPos = model * vec4(aPos.xyz, 1.0);	
+	float displace = CalculateWaveDisplacement(modelPos);
+
+        float xDisplace = .5 * sin(modelPos.x + time * .1);
+	float zDisplace = .5 * sin(modelPos.z + time * .13);
 	
-	vec4 modelPos = model * vec4(aPos.xyz, 1.0);
-	float displace = 0.0;
-
-	for(int i = 1; i < 5; i++){
-		float zWave =  pow(e, sin((modelPos.y - modelPos.x) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x));
-		float xWave =  pow(e, sin((modelPos.x - modelPos.y) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
-		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + time) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
-		
-		displace = displace + (.2 * ((zWave + xWave) + (.1 * yWave)));
-	};
-	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
-
-
 
 	normal = mat3(transpose(inverse(model))) * aNorm;	
-	gl_Position = proj * view * model * vec4( aPos.x , aPos.y + displace, aPos.z, 1.0);
+	gl_Position = proj * view * model * vec4( aPos.x + xDisplace , aPos.y + displace, aPos.z + zDisplace, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
 	//normal = aNorm;
 };	
