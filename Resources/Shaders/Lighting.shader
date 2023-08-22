@@ -23,19 +23,18 @@ void main()
 	float displace = 0.0;
 
 	for(int i = 1; i < 5; i++){
-		float zWave =  pow(e, i * sin((modelPos.z - modelPos.x) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x));
-		float xWave =  pow(e, i * sin((modelPos.x - modelPos.z) * 10 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.z));
-		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + (time * 2) ) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
+		float zWave =  pow(e, sin((modelPos.y - modelPos.x) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.x));
+		float xWave =  pow(e, sin((modelPos.x - modelPos.y) * 2 + time ) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
+		float yWave =  pow(e, i * sin(((modelPos.y - modelPos.z) + (modelPos.x - modelPos.y)) * 2 + time) - 1 ) * .5 * (.5 * cos(i * modelPos.y));
 		
-		displace = displace + .2 * ((zWave - xWave) + (.5 * yWave));
+		displace = displace + (.2 * ((zWave + xWave) + (.1 * yWave)));
 	};
 	//displace = displace * (2 * abs((modelPos.z/2) - floor((modelPos.z/2) + (1/2))));
 
- 
 
 
 	normal = mat3(transpose(inverse(model))) * aNorm;	
-	gl_Position = proj * view * model * vec4( aPos.x , aPos.y, aPos.z + displace, 1.0);
+	gl_Position = proj * view * model * vec4( aPos.x , aPos.y + displace, aPos.z, 1.0);
 	FragPos = vec3(model * vec4(aPos, 1.0));
 	//normal = aNorm;
 };	

@@ -96,7 +96,7 @@ int main()
     ShaderProgramSource lightingSource = Parse("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Shaders/Lighting.Shader");
 
     Model backpackModel("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Models/backpack/Backpack.obj");
-
+    Model highResPlaneModel("D:/1D_Drive_User_Folder/User_Adam/Files/Code Files/C++/Tuul-Renderer/Resources/Models/Plane/HighResPlane.obj");
 
 
     float planeVertices[]{
@@ -295,40 +295,38 @@ int main()
 
         //BACKPACK
         BackpackShader.use();
-        //Light Uniforms
-        int _lightCol = glGetUniformLocation(LightingShader.ID, "lightColor");
+
+        int _lightCol = glGetUniformLocation(BackpackShader.ID, "lightColor");
         glUniform3fv(_lightCol, 1, glm::value_ptr(lightColor));
 
-        int _lightPos = glGetUniformLocation(LightingShader.ID, "lightPos");
+        int _lightPos = glGetUniformLocation(BackpackShader.ID, "lightPos");
         glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
 
-        int _lightPosition = glGetUniformLocation(LightingShader.ID, "light.position");
+        int _lightPosition = glGetUniformLocation(BackpackShader.ID, "light.position");
         glUniform3fv(_lightPosition, 1, glm::value_ptr(lightPos));
 
-        int _lightLinear = glGetUniformLocation(LightingShader.ID, "light.linear");
+        int _lightLinear = glGetUniformLocation(BackpackShader.ID, "light.linear");
         glUniform1f(_lightLinear, .09f);
 
-        int _lightQuadratic = glGetUniformLocation(LightingShader.ID, "light.quadratic");
+        int _lightQuadratic = glGetUniformLocation(BackpackShader.ID, "light.quadratic");
         glUniform1f(_lightQuadratic, .032f);
 
-        int _lightConstant = glGetUniformLocation(LightingShader.ID, "light.constant");
+        int _lightConstant = glGetUniformLocation(BackpackShader.ID, "light.constant");
         glUniform1f(_lightConstant, 1.0f);
 
-        int _lightType = glGetUniformLocation(LightingShader.ID, "lightType");
+        int _lightType = glGetUniformLocation(BackpackShader.ID, "lightType");
         glUniform1i(_lightType, lightType);
 
-        int _useBlinn = glGetUniformLocation(LightingShader.ID, "useBlinn");
+        int _useBlinn = glGetUniformLocation(BackpackShader.ID, "useBlinn");
         glUniform1i(_useBlinn, useBlinn);
 
         //lighting uniforms
-        int _cubeColor = glGetUniformLocation(LightingShader.ID, "objectColor");
+        int _cubeColor = glGetUniformLocation(BackpackShader.ID, "objectColor");
         glUniform3fv(_cubeColor, 1, glm::value_ptr(color));
-        int _cubeAmbInt = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
+        int _cubeAmbInt = glGetUniformLocation(BackpackShader.ID, "ambientIntensity");
         glUniform1f(_cubeAmbInt, ambientIntensity);
-        int _cubeSpecVal = glGetUniformLocation(LightingShader.ID, "specValue");
+        int _cubeSpecVal = glGetUniformLocation(BackpackShader.ID, "specValue");
         glUniform1f(_cubeSpecVal, specValue);
-
-
 
 
         glm::mat4 bModel = glm::mat4(1.0f);
@@ -349,6 +347,64 @@ int main()
         backpackModel.Draw(BackpackShader);
 
 
+        LightingShader.use();
+        //Light Uniforms
+
+        int _lightColP = glGetUniformLocation(LightingShader.ID, "lightColor");
+        glUniform3fv(_lightCol, 1, glm::value_ptr(lightColor));
+
+        int _lightPosP = glGetUniformLocation(LightingShader.ID, "lightPos");
+        glUniform3fv(_lightPos, 1, glm::value_ptr(lightPos));
+
+        int _lightPositionP = glGetUniformLocation(LightingShader.ID, "light.position");
+        glUniform3fv(_lightPosition, 1, glm::value_ptr(lightPos));
+
+        int _lightLinearP = glGetUniformLocation(LightingShader.ID, "light.linear");
+        glUniform1f(_lightLinear, .09f);
+
+        int _lightQuadraticP = glGetUniformLocation(LightingShader.ID, "light.quadratic");
+        glUniform1f(_lightQuadratic, .032f);
+
+        int _lightConstantP = glGetUniformLocation(LightingShader.ID, "light.constant");
+        glUniform1f(_lightConstant, 1.0f);
+
+        int _lightTypeP = glGetUniformLocation(LightingShader.ID, "lightType");
+        glUniform1i(_lightType, lightType);
+
+        int _useBlinnP = glGetUniformLocation(LightingShader.ID, "useBlinn");
+        glUniform1i(_useBlinn, useBlinn);
+
+        //lighting uniforms
+        int _cubeColorP = glGetUniformLocation(LightingShader.ID, "objectColor");
+        glUniform3fv(_cubeColor, 1, glm::value_ptr(color));
+        int _cubeAmbIntP = glGetUniformLocation(LightingShader.ID, "ambientIntensity");
+        glUniform1f(_cubeAmbInt, ambientIntensity);
+        int _cubeSpecValP = glGetUniformLocation(LightingShader.ID, "specValue");
+        glUniform1f(_cubeSpecVal, specValue);
+
+        float _time = glGetUniformLocation(LightingShader.ID, "time");
+        glUniform1f(_time, currentFrame);
+
+        glm::mat4 planeModel = glm::mat4(1.0f);
+        planeModel = glm::translate(planeModel, planePosition);
+        //planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+        glm::mat4 planeProjection = glm::mat4(1.0f);
+        planeProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        glm::mat4 planeView = glm::mat4(1.0f);
+        planeView = camera.GetViewMatrix();
+
+        int pmodelLoc = glGetUniformLocation(LightingShader.ID, "model");
+        int pprojLoc = glGetUniformLocation(LightingShader.ID, "proj");
+        int pviewLoc = glGetUniformLocation(LightingShader.ID, "view");
+        glUniformMatrix4fv(pmodelLoc, 1, GL_FALSE, glm::value_ptr(planeModel));
+        glUniformMatrix4fv(pprojLoc, 1, GL_FALSE, glm::value_ptr(planeProjection));
+        glUniformMatrix4fv(pviewLoc, 1, GL_FALSE, glm::value_ptr(planeView));
+
+        highResPlaneModel.Draw(LightingShader);
+
+
         //imGui Interactive menu 
         ImGui::Begin("Options Menu");
         ImGui::BulletText("Press Tab to use menu");
@@ -359,12 +415,18 @@ int main()
             if(ImGui::CollapsingHeader("Point Light")){
                 ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
                 ImGui::ColorEdit3("Light Color", &lightColor.x);
+                
             };
             if(ImGui::CollapsingHeader("Directional Light")){
                 ImGui::SliderFloat3("Light Position", &lightPos.x, -10.0f, 10.0f);
                 ImGui::ColorEdit3("Light Color", &lightColor.x);
             };
-
+            
+        };
+        if (ImGui::CollapsingHeader("Light Shader Options")) {
+            ImGui::SliderFloat("Specular Amount", &specValue, 0.0f, 256.0f);
+            ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.1f, 1.0f);
+            ImGui::ColorPicker3("Object Base Color", &color.x);
         };
         if(ImGui::CollapsingHeader("Draw Options")){
                 ImGui::Checkbox("Wireframe", &polygonMode);
